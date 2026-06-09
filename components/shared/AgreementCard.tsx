@@ -20,6 +20,7 @@ interface AgreementCardProps {
   onAction?: (agreementId: string, action: AgreementStatus) => void
   onApprove?: (agreementId: string) => void
   onReview?: (agreementId: string) => void
+  onDispute?: (agreementId: string) => void
   isActioning?: boolean
 }
 
@@ -29,6 +30,7 @@ export function AgreementCard({
   onAction,
   onApprove,
   onReview,
+  onDispute,
   isActioning,
 }: AgreementCardProps) {
   const statusConfig = AGREEMENT_STATUS[agreement.status as AgreementStatus]
@@ -199,6 +201,22 @@ export function AgreementCard({
               Dejar reseña
             </Button>
           )}
+
+          {/* Disputa (ambos roles, estados activos) */}
+          {onDispute &&
+            ['active', 'coordinating', 'confirmed', 'in_progress', 'completed'].includes(
+              agreement.status
+            ) && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onDispute(agreement.id)}
+                disabled={isActioning}
+                className="text-red-600 hover:bg-red-50"
+              >
+                Disputar
+              </Button>
+            )}
         </div>
       </div>
     </div>

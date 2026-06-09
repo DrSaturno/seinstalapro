@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { FileCheck2 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { SkeletonCardList } from '@/components/ui/Skeleton'
 import { AgreementCard } from '@/components/shared/AgreementCard'
 import { ReviewModal } from '@/components/shared/ReviewModal'
 import {
@@ -12,6 +13,8 @@ import {
   approveCompletedJob,
   createReview,
 } from '@/lib/actions/agreements'
+import { createDispute } from '@/lib/actions/disputes'
+import { DisputeModal } from '@/components/shared/DisputeModal'
 import type { AgreementFull } from '@/lib/actions/agreements'
 import type { AgreementStatus } from '@/types/database'
 import { toast } from 'sonner'
@@ -31,6 +34,10 @@ export default function EmpresaAcuerdosPage() {
   const [filter, setFilter] = useState('all')
   const [isActioning, setIsActioning] = useState(false)
   const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean
+    agreementId: string
+  } | null>(null)
+  const [disputeModal, setDisputeModal] = useState<{
     isOpen: boolean
     agreementId: string
   } | null>(null)
@@ -94,6 +101,17 @@ export default function EmpresaAcuerdosPage() {
     }
   }
 
+  const handleDispute = async (title: string, description: string) => {
+    if (!disputeModal) return
+    const res = await createDispute(disputeModal.agreementId, title, description)
+    if (res.success) {
+      toast.success(res.message)
+      loadAgreements()
+    } else {
+      toast.error(res.error)
+    }
+  }
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <PageHeader
@@ -120,9 +138,7 @@ export default function EmpresaAcuerdosPage() {
 
       {/* Lista */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-        </div>
+        <SkeletonCardList count={3} />
       ) : filteredAgreements.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
@@ -147,6 +163,9 @@ export default function EmpresaAcuerdosPage() {
               onReview={(id) =>
                 setReviewModal({ isOpen: true, agreementId: id })
               }
+              onDispute={(id) =>
+                setDisputeModal({ isOpen: true, agreementId: id })
+              }
               isActioning={isActioning}
             />
           ))}
@@ -160,6 +179,16 @@ export default function EmpresaAcuerdosPage() {
           onClose={() => setReviewModal(null)}
           onSubmit={handleReview}
           title="Calificá al instalador"
+        />
+      )}
+
+      {/* Modal de disputa */}
+      {disputeModal && (
+        <DisputeModal
+          isOpen={disputeModal.isOpen}
+          onClose={() => setDisputeModal(null)}
+          onSubmit={handleDispute}
+          mode="create"
         />
       )}
     </div>

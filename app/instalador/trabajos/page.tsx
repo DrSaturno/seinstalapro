@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Search, Filter, Briefcase } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { SkeletonCardList } from '@/components/ui/Skeleton'
 import { JobSearchCard } from '@/components/instalador/JobSearchCard'
 import { getPublishedJobs } from '@/lib/actions/offers'
 import { getCategories } from '@/lib/actions/jobs'
@@ -94,9 +95,7 @@ export default function InstaladorTrabajosPage() {
 
       {/* Resultados */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-        </div>
+        <SkeletonCardList count={4} />
       ) : jobs.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Briefcase size={48} className="mx-auto text-gray-300 mb-4" />

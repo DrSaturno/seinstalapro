@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Menu, Bell, LogOut, User, ChevronDown } from 'lucide-react'
+import { Menu, LogOut, User, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
 import { logout } from '@/lib/auth/actions'
 import { Avatar } from '@/components/ui/Avatar'
+import { NotificationDropdown } from '@/components/layout/NotificationDropdown'
 import { ROLE_LABELS } from '@/lib/navigation'
 
 interface TopbarProps {
@@ -57,13 +58,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
         {/* Derecha: Notificaciones + Perfil */}
         <div className="flex items-center gap-2">
           {/* Notificaciones */}
-          <button
-            className="relative p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            aria-label="Notificaciones"
-          >
-            <Bell className="h-5 w-5" />
-            {/* Badge de notificaciones pendientes - se activará cuando haya sistema de notificaciones */}
-          </button>
+          <NotificationDropdown />
 
           {/* Perfil dropdown */}
           <div className="relative" ref={dropdownRef}>

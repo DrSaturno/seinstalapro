@@ -72,3 +72,27 @@ export const AGREEMENT_STATUS: Record<AgreementStatus, StatusConfig> = {
   cancelled: { label: 'Cancelado', color: 'text-red-700', bgColor: 'bg-red-100' },
   disputed: { label: 'En disputa', color: 'text-red-700', bgColor: 'bg-red-100' },
 }
+
+// --- Dispute Status ---
+export const DISPUTE_STATUS: Record<string, StatusConfig> = {
+  new: { label: 'Nueva', color: 'text-blue-700', bgColor: 'bg-blue-100' },
+  under_review: { label: 'En revisión', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
+  waiting_company: { label: 'Esperando empresa', color: 'text-orange-700', bgColor: 'bg-orange-100' },
+  waiting_installer: { label: 'Esperando instalador', color: 'text-orange-700', bgColor: 'bg-orange-100' },
+  resolved: { label: 'Resuelta', color: 'text-green-700', bgColor: 'bg-green-100' },
+  closed: { label: 'Cerrada', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+}
+
+// --- Notification Types ---
+export const NOTIFICATION_LABELS: Record<string, string> = {
+  offer_received: 'Oferta recibida',
+  offer_accepted: 'Oferta aceptada',
+  offer_rejected: 'Oferta rechazada',
+  agreement_update: 'Actualización de acuerdo',
+  dispute_opened: 'Disputa abierta',
+  dispute_resolved: 'Disputa resuelta',
+  review_received: 'Reseña recibida',
+  job_approved: 'Trabajo aprobado',
+  job_rejected: 'Trabajo rechazado',
+  system: 'Sistema',
+}

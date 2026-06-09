@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { SkeletonCardList } from '@/components/ui/Skeleton'
 import { ReceivedOfferCard } from '@/components/empresa/ReceivedOfferCard'
 import {
   getCompanyReceivedOffers,
@@ -114,9 +115,7 @@ export default function EmpresaOfertasPage() {
 
       {/* Lista */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-        </div>
+        <SkeletonCardList count={3} />
       ) : filteredOffers.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
