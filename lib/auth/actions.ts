@@ -98,6 +98,14 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
   }
 
   const { full_name, email, password, role, country_code } = validation.data
+
+  // Debug: verificar env vars
+  console.log('Signup attempt:', email, role)
+  console.log('Env check - URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('Env check - ANON exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  console.log('Env check - SERVICE exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+  console.log('Env check - APP_URL:', process.env.NEXT_PUBLIC_APP_URL)
+
   const supabase = createClient()
 
   // Registrar en Supabase Auth con metadata
@@ -110,19 +118,30 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
         role,
         country_code,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL ? '' : ''}${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
     },
   })
 
   if (authError) {
+    console.error('Signup auth error:', authError.message, authError.status, JSON.stringify(authError))
     if (authError.message.includes('already registered')) {
       return { success: false, error: 'Este email ya está registrado. Intentá iniciar sesión.' }
     }
-    return { success: false, error: 'Error al crear la cuenta. Intentá de nuevo.' }
+    if (authError.message.includes('rate limit') || authError.message.includes('too many')) {
+      return { success: false, error: 'Demasiados intentos. Esperá unos minutos.' }
+    }
+    return { success: false, error: `Error al crear la cuenta: ${authError.message}` }
   }
 
   if (!authData.user) {
-    return { success: false, error: 'Error al crear la cuenta.' }
+    console.error('Signup: no user returned, authData:', JSON.stringify(authData))
+    return { success: false, error: 'Error al crear la cuenta: no se recibió usuario.' }
+  }
+
+  // Detectar email ya registrado (Supabase no devuelve error, devuelve user sin identities)
+  if (authData.user.identities && authData.user.identities.length === 0) {
+    console.error('Signup: email already exists (empty identities), user id:', authData.user.id)
+    return { success: false, error: 'Este email ya está registrado. Intentá iniciar sesión.' }
   }
 
   // Crear perfil usando admin client (bypasa RLS)
@@ -140,8 +159,7 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
     })
 
   if (profileError) {
-    console.error('Error creando perfil:', profileError)
-    // No fallar el signup por esto, el callback lo intentará de nuevo
+    console.error('Error creando perfil:', profileError.message, profileError.code, profileError.details)
   }
 
   // Crear registro de empresa o instalador según el rol
