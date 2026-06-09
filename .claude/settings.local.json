@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__read_page",
+      "mcp__Claude_in_Chrome__find",
+      "mcp__Claude_in_Chrome__javascript_tool",
+      "Bash(pandoc \"01_Schema_SQL_MVP_Modelo_Datos_Final_Se_Instala_Pro.docx\" -t plain)",
+      "Bash(python -m zipfile -l \"01_Schema_SQL_MVP_Modelo_Datos_Final_Se_Instala_Pro.docx\")",
+      "Bash(python -m zipfile -e \"01_Schema_SQL_MVP_Modelo_Datos_Final_Se_Instala_Pro.docx\" /tmp/doc1)",
+      "Read(//tmp/doc1/word/**)"
+    ]
+  }
+}
