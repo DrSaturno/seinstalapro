@@ -8,7 +8,16 @@
       "Bash(pandoc \"01_Schema_SQL_MVP_Modelo_Datos_Final_Se_Instala_Pro.docx\" -t plain)",
       "Bash(python -m zipfile -l \"01_Schema_SQL_MVP_Modelo_Datos_Final_Se_Instala_Pro.docx\")",
       "Bash(python -m zipfile -e \"01_Schema_SQL_MVP_Modelo_Datos_Final_Se_Instala_Pro.docx\" /tmp/doc1)",
-      "Read(//tmp/doc1/word/**)"
+      "Read(//tmp/doc1/word/**)",
+      "Bash(npx jest *)",
+      "Bash(del jest.config.ts)",
+      "Bash(npx next *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction Stop)",
+      "PowerShell(Stop-Process -Force -Confirm:$false)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); const icons = ['LayoutDashboard','Briefcase','FileText','MessageSquare','Building2','Wrench','Users','Shield','Star','Settings','AlertTriangle','Search','ClipboardList','Handshake','UserCircle']; icons.forEach\\(i => console.log\\(i + ': ' + \\(l[i] ? 'OK' : 'MISSING'\\)\\)\\)\")",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\('FileCheck2: ' + \\(l['FileCheck2'] ? 'OK' : 'MISSING'\\)\\)\")"
     ]
   }
 }
