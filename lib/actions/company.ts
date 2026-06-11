@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { companyProfileSchema, type CompanyProfileInput } from '@/lib/validations/company'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult } from '@/lib/actions/types'
 import type { Company } from '@/types/database'
 
 // --- Obtener perfil de empresa ---

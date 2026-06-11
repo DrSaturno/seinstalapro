@@ -18,13 +18,7 @@ import {
   type ResetPasswordInput,
 } from '@/lib/validations/auth'
 import type { UserRole } from '@/types/database'
-
-// Tipo para respuestas de actions
-export type ActionResult = {
-  success: boolean
-  error?: string
-  message?: string
-}
+import type { ActionResult } from '@/lib/actions/types'
 
 // Mapeo de roles a rutas de dashboard
 const ROLE_DASHBOARD: Record<UserRole, string> = {
@@ -99,13 +93,6 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
 
   const { full_name, email, password, role, country_code } = validation.data
 
-  // Debug: verificar env vars
-  console.log('Signup attempt:', email, role)
-  console.log('Env check - URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('Env check - ANON exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-  console.log('Env check - SERVICE exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-  console.log('Env check - APP_URL:', process.env.NEXT_PUBLIC_APP_URL)
-
   const supabase = createClient()
 
   // Registrar en Supabase Auth con metadata
@@ -123,7 +110,6 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
   })
 
   if (authError) {
-    console.error('Signup auth error:', authError.message, authError.status, JSON.stringify(authError))
     if (authError.message.includes('already registered')) {
       return { success: false, error: 'Este email ya está registrado. Intentá iniciar sesión.' }
     }
@@ -134,13 +120,11 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
   }
 
   if (!authData.user) {
-    console.error('Signup: no user returned, authData:', JSON.stringify(authData))
     return { success: false, error: 'Error al crear la cuenta: no se recibió usuario.' }
   }
 
   // Detectar email ya registrado (Supabase no devuelve error, devuelve user sin identities)
   if (authData.user.identities && authData.user.identities.length === 0) {
-    console.error('Signup: email already exists (empty identities), user id:', authData.user.id)
     return { success: false, error: 'Este email ya está registrado. Intentá iniciar sesión.' }
   }
 
@@ -159,7 +143,7 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
     })
 
   if (profileError) {
-    console.error('Error creando perfil:', profileError.message, profileError.code, profileError.details)
+    // Profile creation failed — user was created in auth but profile insert failed
   }
 
   // Crear registro de empresa o instalador según el rol
@@ -174,7 +158,7 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
       })
 
     if (companyError) {
-      console.error('Error creando empresa:', companyError)
+      // Company record creation failed
     }
   } else if (role === 'installer') {
     const { error: installerError } = await adminClient
@@ -186,7 +170,7 @@ export async function signup(data: SignupInput): Promise<ActionResult> {
       })
 
     if (installerError) {
-      console.error('Error creando instalador:', installerError)
+      // Installer record creation failed
     }
   }
 

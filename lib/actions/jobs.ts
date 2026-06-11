@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createJobSchema, type CreateJobInput } from '@/lib/validations/job'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult } from '@/lib/actions/types'
 import type { Job, JobWithCompany, Category, Location } from '@/types/database'
 
 // --- Obtener categorías activas ---

@@ -15,7 +15,7 @@ import {
 } from '@/lib/actions/agreements'
 import { createDispute } from '@/lib/actions/disputes'
 import { DisputeModal } from '@/components/shared/DisputeModal'
-import type { AgreementFull } from '@/lib/actions/agreements'
+import type { AgreementFull } from '@/lib/actions/types'
 import type { AgreementStatus } from '@/types/database'
 import { toast } from 'sonner'
 

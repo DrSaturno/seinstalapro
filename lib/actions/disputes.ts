@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult, DisputeFull } from '@/lib/actions/types'
 import type {
   Dispute,
   Agreement,
@@ -17,16 +17,6 @@ import type {
   DisputeStatus,
 } from '@/types/database'
 import { createNotification } from './notifications'
-
-// --- Tipo completo de disputa ---
-export type DisputeFull = Dispute & {
-  reporter?: Profile
-  agreement?: Agreement & {
-    job?: Job
-    company?: Company & { profile?: Profile }
-    installer?: Installer & { profile?: Profile }
-  }
-}
 
 // --- Transiciones válidas ---
 const DISPUTE_TRANSITIONS: Record<string, string[]> = {

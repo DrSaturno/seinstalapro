@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult, AdminStats } from '@/lib/actions/types'
 import type {
   Company,
   Installer,
@@ -16,18 +16,6 @@ import type {
   InstallerStatus,
   JobStatus,
 } from '@/types/database'
-
-// --- Tipo para stats del admin ---
-export interface AdminStats {
-  totalCompanies: number
-  pendingCompanies: number
-  totalInstallers: number
-  pendingInstallers: number
-  totalJobs: number
-  pendingJobs: number
-  activeJobs: number
-  openDisputes: number
-}
 
 // --- Obtener stats del admin ---
 export async function getAdminStats(): Promise<AdminStats> {

@@ -15,7 +15,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { StatsCard } from '@/components/ui/StatsCard'
 import { useAuth } from '@/providers/AuthProvider'
 import { getAdminStats, getAuditLogs } from '@/lib/actions/admin'
-import type { AdminStats } from '@/lib/actions/admin'
+import type { AdminStats } from '@/lib/actions/types'
 import { formatRelativeDate } from '@/lib/utils/format'
 
 export default function AdminDashboardPage() {

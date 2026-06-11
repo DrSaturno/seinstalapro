@@ -12,7 +12,7 @@ import {
   acceptOffer,
   rejectOffer,
 } from '@/lib/actions/company-offers'
-import type { OfferWithInstaller } from '@/lib/actions/company-offers'
+import type { OfferWithInstaller } from '@/lib/actions/types'
 import { toast } from 'sonner'
 
 const STATUS_FILTERS = [

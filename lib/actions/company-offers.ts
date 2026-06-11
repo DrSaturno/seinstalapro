@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult, OfferWithInstaller } from '@/lib/actions/types'
 import type {
   Offer,
   Job,
@@ -15,12 +15,6 @@ import type {
   Category,
   OfferStatus,
 } from '@/types/database'
-
-// --- Tipo de oferta con datos del instalador ---
-export type OfferWithInstaller = Offer & {
-  installer?: Installer & { profile?: Profile }
-  job?: Job & { category?: Category }
-}
 
 // --- Obtener ofertas recibidas por la empresa ---
 export async function getCompanyReceivedOffers(

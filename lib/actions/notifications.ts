@@ -6,62 +6,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult } from '@/lib/actions/types'
 import type { Notification } from '@/types/database'
-
-// --- Tipos de notificación ---
-export const NOTIFICATION_TYPES = {
-  offer_received: {
-    icon: 'clipboard-list',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-  },
-  offer_accepted: {
-    icon: 'check-circle',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  offer_rejected: {
-    icon: 'x-circle',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-  },
-  agreement_update: {
-    icon: 'file-check',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-  },
-  dispute_opened: {
-    icon: 'alert-triangle',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-  },
-  dispute_resolved: {
-    icon: 'shield-check',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  review_received: {
-    icon: 'star',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-  },
-  job_approved: {
-    icon: 'check-circle',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  job_rejected: {
-    icon: 'x-circle',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-  },
-  system: {
-    icon: 'info',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-  },
-} as const
 
 // --- Obtener notificaciones del usuario ---
 export async function getUserNotifications(

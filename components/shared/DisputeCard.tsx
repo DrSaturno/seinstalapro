@@ -5,7 +5,7 @@ import { AlertTriangle, Calendar, MessageSquare, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { formatRelativeDate } from '@/lib/utils/format'
 import type { DisputeStatus } from '@/types/database'
-import type { DisputeFull } from '@/lib/actions/disputes'
+import type { DisputeFull } from '@/lib/actions/types'
 
 const DISPUTE_STATUS: Record<DisputeStatus, { label: string; color: string; bgColor: string }> = {
   new: { label: 'Nueva', color: 'text-blue-700', bgColor: 'bg-blue-100' },

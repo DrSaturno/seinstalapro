@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult, AgreementFull } from '@/lib/actions/types'
 import type {
   Agreement,
   Job,
@@ -17,14 +17,6 @@ import type {
   Category,
   AgreementStatus,
 } from '@/types/database'
-
-// --- Tipo completo de acuerdo ---
-export type AgreementFull = Agreement & {
-  job?: Job & { category?: Category }
-  company?: Company & { profile?: Profile }
-  installer?: Installer & { profile?: Profile }
-  offer?: Offer
-}
 
 // --- Obtener acuerdos de la empresa ---
 export async function getCompanyAgreements(): Promise<AgreementFull[]> {

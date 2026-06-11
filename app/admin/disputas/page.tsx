@@ -12,7 +12,7 @@ import {
   updateDisputeStatus,
   resolveDispute,
 } from '@/lib/actions/disputes'
-import type { DisputeFull } from '@/lib/actions/disputes'
+import type { DisputeFull } from '@/lib/actions/types'
 import type { DisputeStatus } from '@/types/database'
 import { toast } from 'sonner'
 

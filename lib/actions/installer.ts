@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { ActionResult } from '@/lib/auth/actions'
+import type { ActionResult } from '@/lib/actions/types'
 import { installerProfileSchema } from '@/lib/validations/installer'
 import type { Installer, Profile, Category } from '@/types/database'
 

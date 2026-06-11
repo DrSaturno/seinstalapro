@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button'
 import { AGREEMENT_STATUS } from '@/lib/utils/status'
 import { formatCurrency, formatRelativeDate, formatDate } from '@/lib/utils/format'
 import type { AgreementStatus } from '@/types/database'
-import type { AgreementFull } from '@/lib/actions/agreements'
+import type { AgreementFull } from '@/lib/actions/types'
 
 interface AgreementCardProps {
   agreement: AgreementFull
