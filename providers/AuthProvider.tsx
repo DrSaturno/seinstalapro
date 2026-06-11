@@ -10,6 +10,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -34,23 +35,45 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 })
 
+// Timeout máximo para inicialización de auth (ms)
+const AUTH_INIT_TIMEOUT = 10_000
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Ref para evitar actualizaciones de estado después del unmount
+  const mountedRef = useRef(true)
+  // Ref para evitar doble fetchProfile por race condition
+  // entre initAuth y onAuthStateChange INITIAL_SESSION
+  const profileLoadedRef = useRef(false)
+
   const supabase = createClient()
 
   const fetchProfile = useCallback(
     async (userId: string) => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
 
-      setProfile(data as Profile | null)
+        if (error) {
+          console.error('Error fetching profile:', error.message)
+        }
+
+        if (mountedRef.current) {
+          setProfile(data as Profile | null)
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        if (mountedRef.current) {
+          setProfile(null)
+        }
+      }
     },
     [supabase]
   )
@@ -62,6 +85,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile])
 
   useEffect(() => {
+    mountedRef.current = true
+    profileLoadedRef.current = false
+
+    // Safety timeout: si auth tarda más de AUTH_INIT_TIMEOUT, forzar carga
+    const timeout = setTimeout(() => {
+      if (mountedRef.current) {
+        setIsLoading(false)
+      }
+    }, AUTH_INIT_TIMEOUT)
+
     // Obtener sesión inicial
     const initAuth = async () => {
       try {
@@ -69,39 +102,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: { session: currentSession },
         } = await supabase.auth.getSession()
 
+        if (!mountedRef.current) return
+
         setSession(currentSession)
         setUser(currentSession?.user ?? null)
 
-        if (currentSession?.user) {
+        if (currentSession?.user && !profileLoadedRef.current) {
+          profileLoadedRef.current = true
           await fetchProfile(currentSession.user.id)
         }
       } catch (error) {
         console.error('Error initializing auth:', error)
       } finally {
-        setIsLoading(false)
+        if (mountedRef.current) {
+          setIsLoading(false)
+        }
       }
     }
 
     initAuth()
 
-    // Escuchar cambios de auth
+    // Escuchar cambios de auth (incluye INITIAL_SESSION en supabase-js v2.39+)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      setSession(newSession)
-      setUser(newSession?.user ?? null)
+      if (!mountedRef.current) return
 
-      if (newSession?.user) {
-        await fetchProfile(newSession.user.id)
-      } else {
-        setProfile(null)
+      try {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+
+        if (newSession?.user && !profileLoadedRef.current) {
+          profileLoadedRef.current = true
+          await fetchProfile(newSession.user.id)
+        } else if (newSession?.user && event === 'TOKEN_REFRESHED') {
+          // En refresh de token, actualizar perfil
+          await fetchProfile(newSession.user.id)
+        } else if (!newSession?.user) {
+          setProfile(null)
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error)
+      } finally {
+        if (mountedRef.current) {
+          setIsLoading(false)
+        }
       }
-
-      setIsLoading(false)
     })
 
     return () => {
+      mountedRef.current = false
+      profileLoadedRef.current = false
       subscription.unsubscribe()
+      clearTimeout(timeout)
     }
   }, [supabase, fetchProfile])
 
