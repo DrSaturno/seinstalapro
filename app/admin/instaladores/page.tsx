@@ -15,6 +15,7 @@ type InstallerWithProfile = Installer & { profile?: Profile }
 
 const STATUS_FILTERS = [
   { value: 'all', label: 'Todos' },
+  { value: 'draft', label: 'Borradores' },
   { value: 'pending_review', label: 'Pendientes' },
   { value: 'approved', label: 'Aprobados' },
   { value: 'changes_requested', label: 'Cambios solicitados' },
@@ -200,7 +201,7 @@ export default function AdminInstaladoresPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex gap-1 justify-end flex-wrap">
-                        {installer.status === 'pending_review' && (
+                        {(installer.status === 'pending_review' || installer.status === 'draft') && (
                           <>
                             <Button
                               size="sm"
