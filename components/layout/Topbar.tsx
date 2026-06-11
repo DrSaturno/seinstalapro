@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, LogOut, User, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
-import { logout } from '@/lib/auth/actions'
+import { createClient } from '@/lib/supabase/client'
 import { Avatar } from '@/components/ui/Avatar'
 import { NotificationDropdown } from '@/components/layout/NotificationDropdown'
 import { ROLE_LABELS } from '@/lib/navigation'
@@ -35,7 +35,9 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
 
   const handleLogout = async () => {
     setIsDropdownOpen(false)
-    await logout()
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
   }
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuario'

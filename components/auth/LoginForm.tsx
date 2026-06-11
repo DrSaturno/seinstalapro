@@ -5,10 +5,19 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth'
-import { login } from '@/lib/auth/actions'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
+import type { UserRole } from '@/types/database'
+
+// Mapeo de roles a rutas de dashboard
+const ROLE_DASHBOARD: Record<UserRole, string> = {
+  company: '/empresa/dashboard',
+  installer: '/instalador/dashboard',
+  admin: '/admin/dashboard',
+  superadmin: '/admin/dashboard',
+}
 
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
@@ -27,17 +36,56 @@ export function LoginForm() {
     setError(null)
 
     try {
-      const result = await login(data)
-      if (!result.success && result.error) {
-        setError(result.error)
+      const supabase = createClient()
+
+      // Sign in en el CLIENTE (para que onAuthStateChange sincronice la sesión)
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      })
+
+      if (authError) {
+        if (authError.message === 'Invalid login credentials') {
+          setError('Email o contraseña incorrectos')
+        } else if (authError.message === 'Email not confirmed') {
+          setError('Confirmá tu email antes de iniciar sesión. Revisá tu casilla de correo.')
+        } else if (authError.message.includes('rate limit') || authError.message.includes('too many')) {
+          setError('Demasiados intentos. Esperá unos minutos.')
+        } else {
+          setError('Error al iniciar sesión. Intentá de nuevo.')
+        }
+        return
       }
-      // Si es exitoso, el server action hace redirect
+
+      // Obtener usuario y perfil para determinar rol
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setError('Error al obtener datos del usuario')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, status')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile) {
+        setError('No se encontró tu perfil. Contactá a soporte.')
+        return
+      }
+
+      if (profile.status === 'suspended') {
+        await supabase.auth.signOut()
+        setError('Tu cuenta está suspendida. Contactá a soporte.')
+        return
+      }
+
+      // Navegar con recarga completa para sincronizar server + client
+      const dashboardUrl = ROLE_DASHBOARD[profile.role as UserRole]
+      window.location.href = dashboardUrl
     } catch (err) {
-      // redirect() lanza un error NEXT_REDIRECT - es comportamiento normal
-      // Solo mostrar error si no es un redirect
-      if (err instanceof Error && err.message !== 'NEXT_REDIRECT') {
-        setError('Error inesperado. Intentá de nuevo.')
-      }
+      setError('Error inesperado. Intentá de nuevo.')
     } finally {
       setIsLoading(false)
     }

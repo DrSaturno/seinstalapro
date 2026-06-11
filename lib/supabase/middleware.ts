@@ -7,8 +7,14 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { UserRole } from '@/types/database'
 
-// Rutas públicas que no requieren autenticación
-const PUBLIC_ROUTES = ['/', '/login', '/signup', '/forgot-password', '/auth/callback', '/auth/confirm']
+// Rutas completamente públicas (no necesitan chequeo de auth)
+const PUBLIC_ROUTES = ['/', '/forgot-password', '/reset-password']
+
+// Rutas de auth (callback, confirm)
+const AUTH_CALLBACK_ROUTES = ['/auth/callback', '/auth/confirm']
+
+// Rutas de login/signup (públicas pero redirigen si ya está logueado)
+const AUTH_FORM_ROUTES = ['/login', '/signup']
 
 // Mapeo de roles a rutas base
 const ROLE_ROUTES: Record<UserRole, string> = {
@@ -25,15 +31,18 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Si es ruta pública, permitir acceso sin verificar auth
-  const isPublicRoute = PUBLIC_ROUTES.some(
-    route => pathname === route || pathname.startsWith('/auth/')
-  )
-
-  if (isPublicRoute) {
+  // Auth callbacks — siempre permitir
+  if (AUTH_CALLBACK_ROUTES.some(route => pathname.startsWith(route))) {
     return response
   }
 
+  // Rutas completamente públicas — no necesitan auth check
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return response
+  }
+
+  // Para todo lo demás (incluyendo /login, /signup, rutas protegidas),
+  // verificar autenticación
   try {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,22 +74,28 @@ export async function updateSession(request: NextRequest) {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      // Usuario no autenticado intentando acceder ruta protegida
+      // No autenticado
+      if (AUTH_FORM_ROUTES.includes(pathname)) {
+        return response // Permitir acceso a login/signup
+      }
+      // Redirigir a login para rutas protegidas
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       url.searchParams.set('redirectTo', pathname)
       return NextResponse.redirect(url)
     }
 
-    // Usuario autenticado - obtener perfil para saber el rol
+    // Usuario autenticado — obtener perfil para saber el rol
     const { data: profile } = await supabase
       .from('profiles')
       .select('role, status')
       .eq('id', user.id)
       .single()
 
-    // Si no tiene perfil, redirigir a login
     if (!profile) {
+      if (AUTH_FORM_ROUTES.includes(pathname)) {
+        return response
+      }
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
@@ -89,8 +104,8 @@ export async function updateSession(request: NextRequest) {
     const role = profile.role as UserRole
     const userBaseRoute = ROLE_ROUTES[role]
 
-    // Usuario autenticado intentando acceder a login/signup → redirigir a su dashboard
-    if (pathname === '/login' || pathname === '/signup') {
+    // Usuario autenticado en login/signup → redirigir a su dashboard
+    if (AUTH_FORM_ROUTES.includes(pathname)) {
       const url = request.nextUrl.clone()
       url.pathname = `${userBaseRoute}/dashboard`
       return NextResponse.redirect(url)
@@ -120,7 +135,10 @@ export async function updateSession(request: NextRequest) {
 
     return response
   } catch (error) {
-    // Si hay error en auth, redirigir a login para rutas protegidas
+    // Si hay error en auth
+    if (AUTH_FORM_ROUTES.includes(pathname)) {
+      return response // Permitir acceso a login/signup si falla auth check
+    }
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectTo', pathname)
