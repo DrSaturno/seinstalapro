@@ -245,3 +245,39 @@ export async function resetPassword(
     message: 'Contraseña actualizada correctamente.',
   }
 }
+
+// --- CHANGE PASSWORD (from settings, requires current password) ---
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  if (!newPassword || newPassword.length < 8) {
+    return { success: false, error: 'La nueva contraseña debe tener al menos 8 caracteres' }
+  }
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || !user.email) {
+    return { success: false, error: 'No autenticado' }
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  })
+
+  if (signInError) {
+    return { success: false, error: 'La contraseña actual es incorrecta' }
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  })
+
+  if (error) {
+    return { success: false, error: 'Error al actualizar la contraseña' }
+  }
+
+  return { success: true, message: 'Contraseña actualizada correctamente' }
+}

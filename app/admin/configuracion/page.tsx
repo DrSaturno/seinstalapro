@@ -125,9 +125,13 @@ export default function AdminConfiguracionPage() {
   }
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = '/login'
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut({ scope: 'global' })
+    } catch (err) {
+      console.error('Error en signOut:', err)
+    }
+    window.location.replace('/login')
   }
 
   return (

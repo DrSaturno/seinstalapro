@@ -6,11 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { Upload, X, FileText } from 'lucide-react'
 import { createJobSchema, type CreateJobInput } from '@/lib/validations/job'
-import { createJob, getCategories, getLocations, uploadJobFiles } from '@/lib/actions/jobs'
+import { createJob, updateJob, getCategories, getLocations, uploadJobFiles } from '@/lib/actions/jobs'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
-import type { Category, Location } from '@/types/database'
+import type { Category, Location, JobDetails } from '@/types/database'
 
 const URGENCY_OPTIONS = [
   { value: 'low', label: 'Baja - Sin apuro', color: 'text-gray-600' },
@@ -35,7 +35,13 @@ interface FilePreview {
   isImage: boolean
 }
 
-export function JobForm() {
+interface JobFormProps {
+  mode?: 'create' | 'edit'
+  jobId?: string
+  initialData?: Partial<CreateJobInput>
+}
+
+export function JobForm({ mode = 'create', jobId, initialData }: JobFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -57,6 +63,7 @@ export function JobForm() {
       is_height_work: false,
       requires_special_tools: false,
       urgency: 'normal',
+      ...initialData,
     },
   })
 
@@ -126,26 +133,39 @@ export function JobForm() {
     setError(null)
 
     try {
-      const result = await createJob(data)
-      if (result.success && result.jobId) {
-        // Subir imagenes seleccionadas (si hay)
-        if (filePreviews.length > 0) {
-          setUploadStatus(`Subiendo ${filePreviews.length} archivo(s)...`)
-          const formData = new FormData()
-          filePreviews.forEach((p) => formData.append('files', p.file))
-          const uploadResult = await uploadJobFiles(result.jobId, formData)
-          if (!uploadResult.success) {
-            // El trabajo ya se creo; avisamos pero seguimos al detalle
-            console.error('Error subiendo archivos:', uploadResult.error)
+      if (mode === 'edit' && jobId) {
+        const result = await updateJob(jobId, data)
+        if (result.success) {
+          if (filePreviews.length > 0) {
+            setUploadStatus(`Subiendo ${filePreviews.length} archivo(s)...`)
+            const formData = new FormData()
+            filePreviews.forEach((p) => formData.append('files', p.file))
+            await uploadJobFiles(jobId, formData)
+            filePreviews.forEach((p) => { if (p.url) URL.revokeObjectURL(p.url) })
           }
-          filePreviews.forEach((p) => {
-            if (p.url) URL.revokeObjectURL(p.url)
-          })
+          router.push(`/empresa/trabajos/${jobId}`)
+        } else {
+          setError(result.error || 'Error al actualizar el trabajo')
+          setIsLoading(false)
         }
-        router.push(`/empresa/trabajos/${result.jobId}`)
       } else {
-        setError(result.error || 'Error al crear el trabajo')
-        setIsLoading(false)
+        const result = await createJob(data)
+        if (result.success && result.jobId) {
+          if (filePreviews.length > 0) {
+            setUploadStatus(`Subiendo ${filePreviews.length} archivo(s)...`)
+            const formData = new FormData()
+            filePreviews.forEach((p) => formData.append('files', p.file))
+            const uploadResult = await uploadJobFiles(result.jobId, formData)
+            if (!uploadResult.success) {
+              console.error('Error subiendo archivos:', uploadResult.error)
+            }
+            filePreviews.forEach((p) => { if (p.url) URL.revokeObjectURL(p.url) })
+          }
+          router.push(`/empresa/trabajos/${result.jobId}`)
+        } else {
+          setError(result.error || 'Error al crear el trabajo')
+          setIsLoading(false)
+        }
       }
     } catch (err) {
       setError('Error inesperado. Intenta de nuevo.')
@@ -627,7 +647,7 @@ export function JobForm() {
       {/* ═══════════ BOTONES ═══════════ */}
       <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
         <Button type="submit" isLoading={isLoading} size="lg">
-          Crear borrador
+          {mode === 'edit' ? 'Guardar cambios' : 'Crear borrador'}
         </Button>
         <Button
           type="button"
@@ -639,7 +659,9 @@ export function JobForm() {
       </div>
 
       <p className="text-xs text-gray-500">
-        * El trabajo se creara como borrador con tus imagenes incluidas. Despues podras revisarlo y enviarlo a revision para que sea publicado.
+        {mode === 'edit'
+          ? '* Los cambios se guardan en el borrador. Podras enviarlo a revision cuando estes listo.'
+          : '* El trabajo se creara como borrador con tus imagenes incluidas. Despues podras revisarlo y enviarlo a revision para que sea publicado.'}
       </p>
     </form>
   )

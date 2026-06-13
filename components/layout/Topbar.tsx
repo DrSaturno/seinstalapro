@@ -35,9 +35,13 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
 
   const handleLogout = async () => {
     setIsDropdownOpen(false)
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = '/login'
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut({ scope: 'global' })
+    } catch (err) {
+      console.error('Error en signOut:', err)
+    }
+    window.location.replace('/login')
   }
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuario'

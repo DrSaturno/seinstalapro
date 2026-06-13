@@ -245,6 +245,82 @@ export async function submitJobForReview(
   return { success: true, message: 'Trabajo enviado a revisión.' }
 }
 
+// --- Actualizar trabajo (solo borradores) ---
+export async function updateJob(
+  jobId: string,
+  data: CreateJobInput
+): Promise<ActionResult> {
+  const validation = createJobSchema.safeParse(data)
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues[0].message }
+  }
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { success: false, error: 'No autenticado' }
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('id')
+    .eq('profile_id', user.id)
+    .single()
+
+  if (!company) return { success: false, error: 'Empresa no encontrada' }
+
+  const { data: job } = await supabase
+    .from('jobs')
+    .select('id, status')
+    .eq('id', jobId)
+    .eq('company_id', company.id)
+    .single()
+
+  if (!job) return { success: false, error: 'Trabajo no encontrado' }
+  if (job.status !== 'draft') {
+    return { success: false, error: 'Solo se pueden editar trabajos en borrador' }
+  }
+
+  const details = {
+    is_height_work: validation.data.is_height_work || false,
+    height_meters: validation.data.height_meters || null,
+    requires_special_tools: validation.data.requires_special_tools || false,
+    special_tools_description: validation.data.special_tools_description || null,
+    special_schedule: validation.data.special_schedule || null,
+    surface_type: validation.data.surface_type || null,
+    surface_dimensions: validation.data.surface_dimensions || null,
+    access_details: validation.data.access_details || null,
+    additional_notes: validation.data.additional_notes || null,
+    urgency: validation.data.urgency || 'normal',
+  }
+
+  const { error } = await supabase
+    .from('jobs')
+    .update({
+      title: validation.data.title,
+      description: validation.data.description,
+      category_id: validation.data.category_id,
+      location_id: validation.data.location_id || null,
+      address: validation.data.address || null,
+      details,
+      budget_min: validation.data.budget_min || null,
+      budget_max: validation.data.budget_max || null,
+      currency: validation.data.currency || 'ARS',
+      start_date: validation.data.start_date || null,
+      end_date: validation.data.end_date || null,
+    })
+    .eq('id', jobId)
+
+  if (error) {
+    console.error('Error actualizando trabajo:', error)
+    return { success: false, error: 'Error al actualizar el trabajo' }
+  }
+
+  revalidatePath('/empresa/trabajos')
+  revalidatePath(`/empresa/trabajos/${jobId}`)
+
+  return { success: true, message: 'Trabajo actualizado correctamente.' }
+}
+
 // --- Cancelar trabajo ---
 export async function cancelJob(jobId: string): Promise<ActionResult> {
   const supabase = createClient()

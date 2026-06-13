@@ -161,6 +161,37 @@ export async function removeInstallerSkill(skillId: string): Promise<ActionResul
   return { success: true, message: 'Habilidad eliminada' }
 }
 
+// --- Obtener reseñas recibidas por el instalador ---
+export async function getInstallerReviews(): Promise<
+  Array<{
+    id: string
+    rating: number
+    comment?: string
+    created_at: string
+    job: { title: string; category?: { name: string } } | null
+    reviewer: { full_name: string; avatar_url?: string } | null
+    company: { company_name: string } | null
+  }>
+> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data } = await supabase
+    .from('reviews')
+    .select(`
+      id, rating, comment, created_at,
+      job:jobs(title, category:categories(name)),
+      reviewer:profiles!reviewer_id(full_name, avatar_url),
+      company:jobs(company:companies(company_name))
+    `)
+    .eq('reviewed_id', user.id)
+    .order('created_at', { ascending: false })
+
+  return (data || []) as any
+}
+
 // --- Obtener stats del instalador ---
 export async function getInstallerStats(): Promise<{
   activeOffers: number

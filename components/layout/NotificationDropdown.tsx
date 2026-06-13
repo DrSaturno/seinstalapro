@@ -88,8 +88,10 @@ export function NotificationDropdown() {
     setIsLoading(true)
     try {
       const result = await getUserNotifications(15)
-      setNotifications(result.notifications)
-      setUnreadCount(result.unreadCount)
+      if (result && result.notifications) {
+        setNotifications(result.notifications)
+        setUnreadCount(result.unreadCount)
+      }
     } catch (err) {
       console.error(err)
     } finally {

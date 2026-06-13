@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Send,
   XCircle,
+  Pencil,
   Calendar,
   MapPin,
   FileText,
@@ -30,7 +31,7 @@ import {
   cancelJob,
   uploadJobFiles,
 } from '@/lib/actions/jobs'
-import { formatDateLong } from '@/lib/utils/format'
+import { formatDateLong, formatBudgetRange } from '@/lib/utils/format'
 import type { JobWithCompany, JobDetails } from '@/types/database'
 
 const URGENCY_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
@@ -186,14 +187,24 @@ export default function JobDetailPage() {
 
         <div className="flex items-center gap-2">
           {isDraft && (
-            <Button
-              onClick={handleSubmitForReview}
-              isLoading={actionLoading}
-              size="sm"
-            >
-              <Send className="h-4 w-4 mr-1" />
-              Enviar a revision
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/empresa/trabajos/${jobId}/editar`)}
+              >
+                <Pencil className="h-4 w-4 mr-1" />
+                Editar
+              </Button>
+              <Button
+                onClick={handleSubmitForReview}
+                isLoading={actionLoading}
+                size="sm"
+              >
+                <Send className="h-4 w-4 mr-1" />
+                Enviar a revision
+              </Button>
+            </>
           )}
           {canCancel && (
             <Button
@@ -372,6 +383,17 @@ export default function JobDetailPage() {
 
         {/* Sidebar derecho */}
         <div className="space-y-4">
+          {/* Presupuesto */}
+          {(job.budget_min || job.budget_max) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="font-semibold text-gray-900 mb-2">Presupuesto</h3>
+              <p className="text-2xl font-bold text-green-600">
+                {formatBudgetRange(job.budget_min, job.budget_max, job.currency)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{job.currency}</p>
+            </div>
+          )}
+
           {/* Ubicacion */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h3 className="font-semibold text-gray-900 mb-4">Ubicacion</h3>

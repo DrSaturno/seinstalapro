@@ -10,10 +10,10 @@ import {
   ArrowUpRight,
   AlertTriangle,
   Clock,
+  DollarSign,
 } from 'lucide-react'
 import { JobStatusBadge } from './JobStatusBadge'
-import { formatRelativeDate } from '@/lib/utils/format'
-import { truncate } from '@/lib/utils/format'
+import { formatRelativeDate, truncate, formatBudgetRange } from '@/lib/utils/format'
 import { Button } from '@/components/ui/Button'
 import type { JobWithCompany, JobDetails } from '@/types/database'
 
@@ -79,6 +79,14 @@ export function JobCard({ job, basePath = '/empresa/trabajos' }: JobCardProps) {
           <span className="flex items-center gap-1 text-amber-600 font-medium">
             <ArrowUpRight className="h-3.5 w-3.5" />
             En altura
+          </span>
+        )}
+
+        {/* Presupuesto */}
+        {(job.budget_min || job.budget_max) && (
+          <span className="flex items-center gap-1 text-green-600 font-medium">
+            <DollarSign className="h-3.5 w-3.5" />
+            {formatBudgetRange(job.budget_min, job.budget_max, job.currency)}
           </span>
         )}
 
