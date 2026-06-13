@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notifications'
 import type { ActionResult, OfferWithInstaller } from '@/lib/actions/types'
 import type {
   Offer,
@@ -76,7 +77,7 @@ export async function shortlistOffer(offerId: string): Promise<ActionResult> {
 
   const { data: offer } = await supabase
     .from('offers')
-    .select('id, status')
+    .select('id, status, installer:installers(profile_id), job:jobs(title)')
     .eq('id', offerId)
     .single()
 
@@ -92,6 +93,18 @@ export async function shortlistOffer(offerId: string): Promise<ActionResult> {
 
   if (error) return { success: false, error: 'Error al preseleccionar' }
 
+  const installerProfileId = (offer as any).installer?.profile_id
+  if (installerProfileId) {
+    await createNotification({
+      userId: installerProfileId,
+      type: 'offer_received',
+      title: 'Tu oferta fue preseleccionada',
+      message: `La empresa está considerando tu oferta para "${(offer as any).job?.title || 'un trabajo'}".`,
+      relatedEntityType: 'offer',
+      relatedEntityId: offerId,
+    })
+  }
+
   revalidatePath('/empresa/ofertas')
   return { success: true, message: 'Oferta preseleccionada' }
 }
@@ -102,7 +115,7 @@ export async function rejectOffer(offerId: string): Promise<ActionResult> {
 
   const { data: offer } = await supabase
     .from('offers')
-    .select('id, status')
+    .select('id, status, installer:installers(profile_id), job:jobs(title)')
     .eq('id', offerId)
     .single()
 
@@ -117,6 +130,18 @@ export async function rejectOffer(offerId: string): Promise<ActionResult> {
     .eq('id', offerId)
 
   if (error) return { success: false, error: 'Error al rechazar' }
+
+  const installerProfileId = (offer as any).installer?.profile_id
+  if (installerProfileId) {
+    await createNotification({
+      userId: installerProfileId,
+      type: 'offer_rejected',
+      title: 'Tu oferta no fue seleccionada',
+      message: `La empresa eligió otra opción para "${(offer as any).job?.title || 'un trabajo'}".`,
+      relatedEntityType: 'offer',
+      relatedEntityId: offerId,
+    })
+  }
 
   revalidatePath('/empresa/ofertas')
   return { success: true, message: 'Oferta rechazada' }
@@ -134,7 +159,7 @@ export async function acceptOffer(offerId: string): Promise<ActionResult> {
   // Obtener la oferta completa
   const { data: offer } = await supabase
     .from('offers')
-    .select('*, job:jobs(id, company_id, status)')
+    .select('*, job:jobs(id, company_id, status, title), installer:installers(profile_id)')
     .eq('id', offerId)
     .single()
 
@@ -158,7 +183,14 @@ export async function acceptOffer(offerId: string): Promise<ActionResult> {
 
   if (acceptError) return { success: false, error: 'Error al aceptar la oferta' }
 
-  // 2. Rechazar las demás ofertas del trabajo
+  // 2. Rechazar las demás ofertas del trabajo (guardando antes a quiénes notificar)
+  const { data: otherOffers } = await supabase
+    .from('offers')
+    .select('id, installer:installers(profile_id)')
+    .eq('job_id', job.id)
+    .neq('id', offerId)
+    .in('status', ['sent', 'shortlisted'])
+
   await supabase
     .from('offers')
     .update({
@@ -192,6 +224,34 @@ export async function acceptOffer(offerId: string): Promise<ActionResult> {
     .from('jobs')
     .update({ status: 'offer_accepted' })
     .eq('id', job.id)
+
+  // 5. Notificar al instalador ganador
+  const winnerProfileId = (offer as any).installer?.profile_id
+  if (winnerProfileId) {
+    await createNotification({
+      userId: winnerProfileId,
+      type: 'offer_accepted',
+      title: '¡Tu oferta fue aceptada!',
+      message: `La empresa aceptó tu oferta para "${job.title || 'un trabajo'}". Ya pueden coordinar la instalación.`,
+      relatedEntityType: 'offer',
+      relatedEntityId: offerId,
+    })
+  }
+
+  // 6. Notificar a los instaladores cuyas ofertas fueron rechazadas
+  for (const other of otherOffers || []) {
+    const profileId = (other as any).installer?.profile_id
+    if (profileId) {
+      await createNotification({
+        userId: profileId,
+        type: 'offer_rejected',
+        title: 'Tu oferta no fue seleccionada',
+        message: `La empresa eligió otra oferta para "${job.title || 'un trabajo'}".`,
+        relatedEntityType: 'offer',
+        relatedEntityId: other.id,
+      })
+    }
+  }
 
   revalidatePath('/empresa/ofertas')
   revalidatePath('/empresa/acuerdos')

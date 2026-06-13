@@ -9,9 +9,15 @@ import {
   XCircle,
   Calendar,
   MapPin,
-  DollarSign,
   FileText,
   Clock,
+  ArrowUpRight,
+  AlertTriangle,
+  Wrench,
+  Ruler,
+  Building2,
+  StickyNote,
+  Navigation,
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
@@ -24,8 +30,15 @@ import {
   cancelJob,
   uploadJobFiles,
 } from '@/lib/actions/jobs'
-import { formatBudgetRange, formatDateLong } from '@/lib/utils/format'
-import type { JobWithCompany } from '@/types/database'
+import { formatDateLong } from '@/lib/utils/format'
+import type { JobWithCompany, JobDetails } from '@/types/database'
+
+const URGENCY_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
+  low: { label: 'Baja', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  normal: { label: 'Normal', color: 'text-blue-700', bgColor: 'bg-blue-50' },
+  high: { label: 'Alta', color: 'text-orange-700', bgColor: 'bg-orange-50' },
+  urgent: { label: 'Urgente', color: 'text-red-700', bgColor: 'bg-red-50' },
+}
 
 export default function JobDetailPage() {
   const params = useParams()
@@ -58,8 +71,7 @@ export default function JobDetailPage() {
     try {
       const result = await submitJobForReview(jobId)
       if (result.success) {
-        setSuccess(result.message || 'Enviado a revisión')
-        // Recargar
+        setSuccess(result.message || 'Enviado a revision')
         const updated = await getJobDetail(jobId)
         setJob(updated)
       } else {
@@ -73,7 +85,7 @@ export default function JobDetailPage() {
   }
 
   const handleCancel = async () => {
-    if (!confirm('¿Estás seguro de cancelar este trabajo?')) return
+    if (!confirm('Estas seguro de cancelar este trabajo?')) return
 
     setActionLoading(true)
     setError(null)
@@ -94,7 +106,6 @@ export default function JobDetailPage() {
   const handleUploadFiles = async (formData: FormData) => {
     const result = await uploadJobFiles(jobId, formData)
     if (result.success) {
-      // Recargar para ver archivos
       const updated = await getJobDetail(jobId)
       setJob(updated)
     }
@@ -126,6 +137,8 @@ export default function JobDetailPage() {
 
   const isDraft = job.status === 'draft'
   const canCancel = ['draft', 'pending_admin_approval', 'published', 'receiving_offers'].includes(job.status)
+  const details = (job.details || {}) as JobDetails
+  const urgency = details.urgency ? URGENCY_CONFIG[details.urgency] : null
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -155,12 +168,20 @@ export default function JobDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
             <JobStatusBadge status={job.status} />
           </div>
-          {job.category && (
-            <p className="text-sm text-gray-500">
-              <FileText className="h-4 w-4 inline mr-1" />
-              {job.category.name}
-            </p>
-          )}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+            {job.category && (
+              <span className="flex items-center gap-1">
+                <FileText className="h-4 w-4" />
+                {job.category.name}
+              </span>
+            )}
+            {urgency && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${urgency.bgColor} ${urgency.color}`}>
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Urgencia: {urgency.label}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -171,7 +192,7 @@ export default function JobDetailPage() {
               size="sm"
             >
               <Send className="h-4 w-4 mr-1" />
-              Enviar a revisión
+              Enviar a revision
             </Button>
           )}
           {canCancel && (
@@ -191,20 +212,129 @@ export default function JobDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Descripción */}
+          {/* Descripcion */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Descripción
+              Descripcion
             </h2>
             <p className="text-gray-700 whitespace-pre-wrap">
-              {job.description || 'Sin descripción'}
+              {job.description || 'Sin descripcion'}
             </p>
           </div>
 
-          {/* Imágenes */}
+          {/* Especificaciones tecnicas */}
+          {(details.is_height_work || details.requires_special_tools || details.surface_type || details.surface_dimensions) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Especificaciones tecnicas
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Trabajo en altura */}
+                {details.is_height_work && (
+                  <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <ArrowUpRight className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-800">Trabajo en altura</p>
+                      {details.height_meters && (
+                        <p className="text-sm text-amber-600">{details.height_meters} metros</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Si NO es en altura, mostrar que no lo es */}
+                {details.is_height_work === false && (
+                  <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <ArrowUpRight className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-green-800">No es en altura</p>
+                      <p className="text-sm text-green-600">Trabajo a nivel del suelo</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Herramientas especiales */}
+                {details.requires_special_tools && (
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <Wrench className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-800">Herramientas especiales</p>
+                      {details.special_tools_description && (
+                        <p className="text-sm text-blue-600">{details.special_tools_description}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Superficie */}
+                {details.surface_type && (
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <Building2 className="h-5 w-5 text-gray-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-800">Tipo de superficie</p>
+                      <p className="text-sm text-gray-600">{details.surface_type}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Dimensiones */}
+                {details.surface_dimensions && (
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <Ruler className="h-5 w-5 text-gray-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-800">Dimensiones</p>
+                      <p className="text-sm text-gray-600">{details.surface_dimensions}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Logistica y acceso */}
+          {(details.special_schedule || details.access_details) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Logistica y acceso
+              </h2>
+              <div className="space-y-4">
+                {details.special_schedule && (
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Restricciones de horario</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{details.special_schedule}</p>
+                    </div>
+                  </div>
+                )}
+                {details.access_details && (
+                  <div className="flex items-start gap-3">
+                    <Navigation className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Detalles de acceso</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{details.access_details}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Notas adicionales */}
+          {details.additional_notes && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                <StickyNote className="h-5 w-5 inline mr-2 text-gray-400" />
+                Notas adicionales
+              </h2>
+              <p className="text-gray-700 whitespace-pre-wrap">{details.additional_notes}</p>
+            </div>
+          )}
+
+          {/* Imagenes */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Archivos e imágenes
+              Archivos e imagenes
             </h2>
             <ImageUploader
               onUpload={handleUploadFiles}
@@ -218,14 +348,23 @@ export default function JobDetailPage() {
             />
           </div>
 
-          {/* Ofertas recibidas (placeholder) */}
+          {/* Ofertas recibidas */}
           {job.offers_count > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                Ofertas recibidas ({job.offers_count})
-              </h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Ofertas recibidas ({job.offers_count})
+                </h2>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => router.push('/empresa/ofertas')}
+                >
+                  Ver todas
+                </Button>
+              </div>
               <p className="text-sm text-gray-500">
-                Las ofertas se mostrarán aquí cuando los instaladores envíen sus propuestas.
+                Gestioná las ofertas de los instaladores desde la seccion de ofertas.
               </p>
             </div>
           )}
@@ -233,25 +372,15 @@ export default function JobDetailPage() {
 
         {/* Sidebar derecho */}
         <div className="space-y-4">
-          {/* Detalles */}
+          {/* Ubicacion */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-900 mb-4">Detalles</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Ubicacion</h3>
             <dl className="space-y-3">
-              <div className="flex items-start gap-2">
-                <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
-                <div>
-                  <dt className="text-xs text-gray-500">Presupuesto</dt>
-                  <dd className="text-sm font-medium text-gray-900">
-                    {formatBudgetRange(job.budget_min, job.budget_max, job.currency)}
-                  </dd>
-                </div>
-              </div>
-
               {job.location && (
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <dt className="text-xs text-gray-500">Ubicación</dt>
+                    <dt className="text-xs text-gray-500">Ciudad / Region</dt>
                     <dd className="text-sm font-medium text-gray-900">
                       {job.location.city_name}
                       {job.location.province_name && `, ${job.location.province_name}`}
@@ -260,6 +389,28 @@ export default function JobDetailPage() {
                 </div>
               )}
 
+              {job.address && (
+                <div className="flex items-start gap-2">
+                  <Navigation className="h-4 w-4 text-gray-400 mt-0.5" />
+                  <div>
+                    <dt className="text-xs text-gray-500">Direccion exacta</dt>
+                    <dd className="text-sm font-medium text-gray-900">
+                      {job.address}
+                    </dd>
+                  </div>
+                </div>
+              )}
+
+              {!job.location && !job.address && (
+                <p className="text-sm text-gray-400">Sin ubicacion especificada</p>
+              )}
+            </dl>
+          </div>
+
+          {/* Fechas */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 className="font-semibold text-gray-900 mb-4">Fechas</h3>
+            <dl className="space-y-3">
               {job.start_date && (
                 <div className="flex items-start gap-2">
                   <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
@@ -302,7 +453,17 @@ export default function JobDetailPage() {
             <p className="text-3xl font-bold text-primary-500">
               {job.offers_count}
             </p>
-            <p className="text-xs text-gray-500">ofertas recibidas</p>
+            <p className="text-xs text-gray-500 mb-3">ofertas recibidas</p>
+            {job.offers_count > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => router.push('/empresa/ofertas')}
+              >
+                Ver ofertas
+              </Button>
+            )}
           </div>
         </div>
       </div>

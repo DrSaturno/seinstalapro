@@ -11,6 +11,14 @@ import {
   DollarSign,
   CheckCircle,
   Clock,
+  ArrowUpRight,
+  Wrench,
+  Ruler,
+  Navigation,
+  AlertTriangle,
+  StickyNote,
+  FileText,
+  Lock,
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
@@ -20,13 +28,21 @@ import { getJobDetailForInstaller } from '@/lib/actions/offers'
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils/format'
 import { OFFER_STATUS } from '@/lib/utils/status'
 import { clsx } from 'clsx'
-import type { Job, Company, Category, Location, Offer, Profile, OfferStatus } from '@/types/database'
+import type { Job, Company, Category, Location, Offer, Profile, OfferStatus, JobDetails, JobFile } from '@/types/database'
 import Link from 'next/link'
 
 type JobDetail = Job & {
   company?: Company & { profile?: Pick<Profile, 'full_name'> }
   category?: Category
   location?: Location
+  files?: JobFile[]
+}
+
+const URGENCY_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
+  low: { label: 'Baja', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  normal: { label: 'Normal', color: 'text-blue-700', bgColor: 'bg-blue-50' },
+  high: { label: 'Alta', color: 'text-orange-700', bgColor: 'bg-orange-50' },
+  urgent: { label: 'Urgente', color: 'text-red-700', bgColor: 'bg-red-50' },
 }
 
 export default function InstaladorTrabajoDetallePage() {
@@ -87,6 +103,13 @@ export default function InstaladorTrabajoDetallePage() {
     ? OFFER_STATUS[myOffer.status as OfferStatus]
     : null
 
+  const details = (job.details || {}) as JobDetails
+  const urgency = details.urgency ? URGENCY_CONFIG[details.urgency] : null
+  const jobImages = (job.files || []).filter((f) => f.file_type === 'image')
+  const jobDocs = (job.files || []).filter((f) => f.file_type !== 'image')
+  // La dirección exacta solo se revela cuando la oferta fue aceptada
+  const showExactAddress = myOffer?.status === 'accepted'
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Volver */}
@@ -102,9 +125,17 @@ export default function InstaladorTrabajoDetallePage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Detalle del trabajo */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              {job.title}
-            </h1>
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h1 className="text-xl font-bold text-gray-900">
+                {job.title}
+              </h1>
+              {urgency && (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${urgency.bgColor} ${urgency.color}`}>
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {urgency.label}
+                </span>
+              )}
+            </div>
 
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm mb-4">
               {company?.company_name && (
@@ -184,6 +215,171 @@ export default function InstaladorTrabajoDetallePage() {
               </div>
             </div>
           </div>
+
+          {/* Especificaciones técnicas */}
+          {(details.is_height_work !== undefined ||
+            details.requires_special_tools ||
+            details.surface_type ||
+            details.surface_dimensions) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Especificaciones técnicas
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {details.is_height_work && (
+                  <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <ArrowUpRight className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-800">Trabajo en altura</p>
+                      {details.height_meters && (
+                        <p className="text-sm text-amber-600">
+                          {details.height_meters} metros — necesitarás equipamiento de seguridad
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {details.requires_special_tools && (
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <Wrench className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-800">Herramientas especiales</p>
+                      {details.special_tools_description && (
+                        <p className="text-sm text-blue-600">{details.special_tools_description}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {details.surface_type && (
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <Building2 className="h-5 w-5 text-gray-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-800">Tipo de superficie</p>
+                      <p className="text-sm text-gray-600">{details.surface_type}</p>
+                    </div>
+                  </div>
+                )}
+                {details.surface_dimensions && (
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <Ruler className="h-5 w-5 text-gray-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-800">Dimensiones</p>
+                      <p className="text-sm text-gray-600">{details.surface_dimensions}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Logística y acceso */}
+          {(details.special_schedule || details.access_details || job.address) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Logística y acceso
+              </h2>
+              <div className="space-y-4">
+                {details.special_schedule && (
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Restricciones de horario</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{details.special_schedule}</p>
+                    </div>
+                  </div>
+                )}
+                {details.access_details && (
+                  <div className="flex items-start gap-3">
+                    <Navigation className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Detalles de acceso</p>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{details.access_details}</p>
+                    </div>
+                  </div>
+                )}
+                {job.address && (
+                  <div className="flex items-start gap-3">
+                    {showExactAddress ? (
+                      <>
+                        <MapPin className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Dirección exacta</p>
+                          <p className="text-sm text-gray-600">{job.address}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Dirección exacta</p>
+                          <p className="text-sm text-gray-400 italic">
+                            Se revela cuando tu oferta sea aceptada
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Notas adicionales */}
+          {details.additional_notes && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                <StickyNote className="h-5 w-5 inline mr-2 text-gray-400" />
+                Consideraciones adicionales
+              </h2>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{details.additional_notes}</p>
+            </div>
+          )}
+
+          {/* Imágenes y archivos */}
+          {(jobImages.length > 0 || jobDocs.length > 0) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Imágenes y archivos ({(job.files || []).length})
+              </h2>
+              {jobImages.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                  {jobImages.map((file) => (
+                    <a
+                      key={file.id}
+                      href={file.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-lg border border-gray-200 overflow-hidden aspect-square hover:opacity-90 transition-opacity"
+                    >
+                      <img
+                        src={file.file_url}
+                        alt={file.file_name || 'Imagen del trabajo'}
+                        className="w-full h-full object-cover"
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
+              {jobDocs.length > 0 && (
+                <div className="space-y-2">
+                  {jobDocs.map((file) => (
+                    <a
+                      key={file.id}
+                      href={file.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      <FileText className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 truncate">
+                        {file.file_name || 'Documento'}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Columna lateral - Oferta */}

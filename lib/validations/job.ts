@@ -7,30 +7,77 @@ import { z } from 'zod'
 export const createJobSchema = z.object({
   title: z
     .string()
-    .min(1, 'El título es obligatorio')
-    .min(5, 'El título debe tener al menos 5 caracteres')
-    .max(200, 'El título no puede exceder 200 caracteres'),
+    .min(1, 'El titulo es obligatorio')
+    .min(5, 'El titulo debe tener al menos 5 caracteres')
+    .max(200, 'El titulo no puede exceder 200 caracteres'),
   description: z
     .string()
-    .min(1, 'La descripción es obligatoria')
-    .min(20, 'La descripción debe tener al menos 20 caracteres')
-    .max(5000, 'La descripción no puede exceder 5000 caracteres'),
+    .min(1, 'La descripcion es obligatoria')
+    .min(20, 'La descripcion debe tener al menos 20 caracteres')
+    .max(5000, 'La descripcion no puede exceder 5000 caracteres'),
   category_id: z
     .string()
-    .uuid('Seleccioná una categoría válida'),
+    .uuid('Selecciona una categoria valida'),
   location_id: z
     .string()
-    .uuid('Seleccioná una ubicación válida')
+    .uuid('Selecciona una ubicacion valida')
     .optional()
     .or(z.literal('')),
+  address: z
+    .string()
+    .max(500, 'La direccion no puede exceder 500 caracteres')
+    .optional()
+    .or(z.literal('')),
+  // Detail fields
+  is_height_work: z.boolean().default(false),
+  height_meters: z
+    .number()
+    .min(0, 'La altura no puede ser negativa')
+    .max(100, 'La altura no puede exceder 100 metros')
+    .optional()
+    .nullable(),
+  requires_special_tools: z.boolean().default(false),
+  special_tools_description: z
+    .string()
+    .max(500, 'Maximo 500 caracteres')
+    .optional()
+    .or(z.literal('')),
+  special_schedule: z
+    .string()
+    .max(500, 'Maximo 500 caracteres')
+    .optional()
+    .or(z.literal('')),
+  surface_type: z
+    .string()
+    .max(200, 'Maximo 200 caracteres')
+    .optional()
+    .or(z.literal('')),
+  surface_dimensions: z
+    .string()
+    .max(200, 'Maximo 200 caracteres')
+    .optional()
+    .or(z.literal('')),
+  access_details: z
+    .string()
+    .max(500, 'Maximo 500 caracteres')
+    .optional()
+    .or(z.literal('')),
+  additional_notes: z
+    .string()
+    .max(1000, 'Maximo 1000 caracteres')
+    .optional()
+    .or(z.literal('')),
+  urgency: z
+    .enum(['low', 'normal', 'high', 'urgent'])
+    .default('normal'),
   budget_min: z
-    .number({ invalid_type_error: 'Ingresá un número válido' })
-    .min(0, 'El presupuesto mínimo no puede ser negativo')
+    .number({ invalid_type_error: 'Ingresa un numero valido' })
+    .min(0, 'El presupuesto minimo no puede ser negativo')
     .optional()
     .nullable(),
   budget_max: z
-    .number({ invalid_type_error: 'Ingresá un número válido' })
-    .min(0, 'El presupuesto máximo no puede ser negativo')
+    .number({ invalid_type_error: 'Ingresa un numero valido' })
+    .min(0, 'El presupuesto maximo no puede ser negativo')
     .optional()
     .nullable(),
   currency: z
@@ -52,7 +99,7 @@ export const createJobSchema = z.object({
     return true
   },
   {
-    message: 'El presupuesto mínimo no puede ser mayor al máximo',
+    message: 'El presupuesto minimo no puede ser mayor al maximo',
     path: ['budget_min'],
   }
 ).refine(
@@ -70,7 +117,7 @@ export const createJobSchema = z.object({
 
 export type CreateJobInput = z.infer<typeof createJobSchema>
 
-// Schema para editar (mismos campos pero todo opcional excepto title)
+// Schema para editar (mismos campos)
 export const updateJobSchema = createJobSchema
 
 export type UpdateJobInput = z.infer<typeof updateJobSchema>

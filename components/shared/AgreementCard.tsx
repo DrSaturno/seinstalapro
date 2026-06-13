@@ -1,12 +1,14 @@
 'use client'
 
 import { clsx } from 'clsx'
+import Link from 'next/link'
 import {
   DollarSign,
   Calendar,
   Building2,
   Wrench,
   Tag,
+  MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { AGREEMENT_STATUS } from '@/lib/utils/status'
@@ -117,7 +119,19 @@ export function AgreementCard({
           Creado {formatRelativeDate(agreement.created_at)}
         </span>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {/* Mensajes (ambos roles, estados activos) */}
+          {!['cancelled'].includes(agreement.status) && (
+            <Link
+              href={`/${viewAs === 'company' ? 'empresa' : 'instalador'}/mensajes?acuerdo=${agreement.id}`}
+            >
+              <Button size="sm" variant="outline">
+                <MessageSquare size={14} className="mr-1" />
+                Mensajes
+              </Button>
+            </Link>
+          )}
+
           {/* Flujo para empresa */}
           {viewAs === 'company' && (
             <>

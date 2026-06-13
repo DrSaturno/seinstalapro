@@ -94,5 +94,9 @@ export const NOTIFICATION_LABELS: Record<string, string> = {
   review_received: 'Reseña recibida',
   job_approved: 'Trabajo aprobado',
   job_rejected: 'Trabajo rechazado',
+  account_verified: 'Cuenta verificada',
+  account_rejected: 'Cuenta rechazada',
+  account_suspended: 'Cuenta suspendida',
+  message_received: 'Mensaje recibido',
   system: 'Sistema',
 }

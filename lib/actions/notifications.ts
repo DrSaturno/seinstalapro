@@ -5,6 +5,7 @@
 // ============================================================
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/types'
 import type { Notification } from '@/types/database'
@@ -91,6 +92,8 @@ export async function markAllNotificationsRead(): Promise<ActionResult> {
 }
 
 // --- Crear notificación (helper para otros server actions) ---
+// Usa el cliente admin porque las notificaciones se crean PARA otros
+// usuarios (el RLS del usuario actual bloquearía el insert)
 export async function createNotification(params: {
   userId: string
   type: string
@@ -99,9 +102,11 @@ export async function createNotification(params: {
   relatedEntityType?: string
   relatedEntityId?: string
 }): Promise<void> {
-  const supabase = createClient()
+  if (!params.userId) return
 
-  await supabase.from('notifications').insert({
+  const supabase = createAdminClient()
+
+  const { error } = await supabase.from('notifications').insert({
     user_id: params.userId,
     notification_type: params.type,
     title: params.title,
@@ -110,4 +115,41 @@ export async function createNotification(params: {
     related_entity_id: params.relatedEntityId || null,
     is_read: false,
   })
+
+  if (error) {
+    console.error('Error creando notificación:', error)
+  }
+}
+
+// --- Notificar a todos los admins (helper) ---
+export async function notifyAdmins(params: {
+  type: string
+  title: string
+  message?: string
+  relatedEntityType?: string
+  relatedEntityId?: string
+}): Promise<void> {
+  const supabase = createAdminClient()
+
+  const { data: admins } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin')
+
+  if (!admins || admins.length === 0) return
+
+  const rows = admins.map((a) => ({
+    user_id: a.id,
+    notification_type: params.type,
+    title: params.title,
+    message: params.message || null,
+    related_entity_type: params.relatedEntityType || null,
+    related_entity_id: params.relatedEntityId || null,
+    is_read: false,
+  }))
+
+  const { error } = await supabase.from('notifications').insert(rows)
+  if (error) {
+    console.error('Error notificando admins:', error)
+  }
 }

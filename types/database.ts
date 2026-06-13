@@ -112,6 +112,19 @@ export interface InstallerSkill {
   created_at: string
 }
 
+export interface JobDetails {
+  is_height_work?: boolean
+  height_meters?: number
+  requires_special_tools?: boolean
+  special_tools_description?: string
+  special_schedule?: string
+  surface_type?: string
+  surface_dimensions?: string
+  access_details?: string
+  additional_notes?: string
+  urgency?: 'low' | 'normal' | 'high' | 'urgent'
+}
+
 export interface Job {
   id: string
   company_id: string
@@ -119,10 +132,12 @@ export interface Job {
   title: string
   description?: string
   location_id?: string
+  address?: string
   status: JobStatus
   budget_min?: number
   budget_max?: number
   currency: string
+  details?: JobDetails
   start_date?: string
   end_date?: string
   files_count: number

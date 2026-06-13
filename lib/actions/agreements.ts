@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notifications'
 import type { ActionResult, AgreementFull } from '@/lib/actions/types'
 import type {
   Agreement,
@@ -81,10 +82,13 @@ export async function updateAgreementStatus(
   notes?: string
 ): Promise<ActionResult> {
   const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { data: agreement } = await supabase
     .from('agreements')
-    .select('id, status, job_id')
+    .select('id, status, job_id, company:companies(profile_id), installer:installers(profile_id), job:jobs(title)')
     .eq('id', agreementId)
     .single()
 
@@ -134,6 +138,35 @@ export async function updateAgreementStatus(
       .eq('id', agreement.job_id)
   }
 
+  // Notificar a la contraparte (al que NO hizo el cambio)
+  const STATUS_LABELS: Record<string, string> = {
+    coordinating: 'en coordinación',
+    confirmed: 'confirmado',
+    in_progress: 'en progreso',
+    completed: 'marcado como completado',
+    cancelled: 'cancelado',
+    disputed: 'en disputa',
+  }
+
+  const companyProfileId = (agreement as any).company?.profile_id
+  const installerProfileId = (agreement as any).installer?.profile_id
+  const jobTitle = (agreement as any).job?.title || 'un trabajo'
+  const statusLabel = STATUS_LABELS[newStatus] || newStatus
+
+  const recipients = [companyProfileId, installerProfileId].filter(
+    (id) => id && id !== user?.id
+  )
+  for (const recipientId of recipients) {
+    await createNotification({
+      userId: recipientId,
+      type: 'agreement_update',
+      title: `Acuerdo ${statusLabel}`,
+      message: `El acuerdo de "${jobTitle}" ahora está ${statusLabel}.`,
+      relatedEntityType: 'agreement',
+      relatedEntityId: agreementId,
+    })
+  }
+
   revalidatePath('/empresa/acuerdos')
   revalidatePath('/instalador/acuerdos')
 
@@ -172,7 +205,7 @@ export async function approveCompletedJob(
 
   const { data: agreement } = await supabase
     .from('agreements')
-    .select('id, status, job_id')
+    .select('id, status, job_id, installer:installers(profile_id), job:jobs(title)')
     .eq('id', agreementId)
     .single()
 
@@ -186,6 +219,19 @@ export async function approveCompletedJob(
     .from('jobs')
     .update({ status: 'approved' })
     .eq('id', agreement.job_id)
+
+  // Notificar al instalador que la empresa aprobó su trabajo
+  const installerProfileId = (agreement as any).installer?.profile_id
+  if (installerProfileId) {
+    await createNotification({
+      userId: installerProfileId,
+      type: 'job_approved',
+      title: 'La empresa aprobó tu trabajo',
+      message: `"${(agreement as any).job?.title || 'Tu trabajo'}" fue aprobado. ¡Ya pueden calificarse mutuamente!`,
+      relatedEntityType: 'agreement',
+      relatedEntityId: agreementId,
+    })
+  }
 
   revalidatePath('/empresa/acuerdos')
   revalidatePath('/instalador/acuerdos')
@@ -305,6 +351,16 @@ export async function createReview(
         .eq('profile_id', reviewedId)
     }
   }
+
+  // Notificar al reseñado
+  await createNotification({
+    userId: reviewedId,
+    type: 'review_received',
+    title: 'Recibiste una reseña',
+    message: `Te calificaron con ${rating} estrella${rating !== 1 ? 's' : ''}${comment ? ' y dejaron un comentario' : ''}.`,
+    relatedEntityType: 'agreement',
+    relatedEntityId: agreementId,
+  })
 
   // Actualizar job a "rated" si ambas partes dejaron reseña
   const { data: jobReviews } = await supabase

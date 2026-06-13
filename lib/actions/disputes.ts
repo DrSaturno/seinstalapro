@@ -16,7 +16,7 @@ import type {
   Profile,
   DisputeStatus,
 } from '@/types/database'
-import { createNotification } from './notifications'
+import { createNotification, notifyAdmins } from './notifications'
 
 // --- Transiciones válidas ---
 const DISPUTE_TRANSITIONS: Record<string, string[]> = {
@@ -119,6 +119,44 @@ export async function createDispute(
     .from('jobs')
     .update({ status: 'disputed' })
     .eq('id', agreement.job_id)
+
+  // Notificar a la contraparte del acuerdo
+  let counterpartProfileId: string | null = null
+  if (profile?.role === 'company') {
+    const { data: counterpart } = await supabase
+      .from('installers')
+      .select('profile_id')
+      .eq('id', agreement.installer_id)
+      .single()
+    counterpartProfileId = counterpart?.profile_id || null
+  } else {
+    const { data: counterpart } = await supabase
+      .from('companies')
+      .select('profile_id')
+      .eq('id', agreement.company_id)
+      .single()
+    counterpartProfileId = counterpart?.profile_id || null
+  }
+
+  if (counterpartProfileId) {
+    await createNotification({
+      userId: counterpartProfileId,
+      type: 'dispute_opened',
+      title: 'Se abrió una disputa',
+      message: `Se abrió una disputa sobre uno de tus acuerdos: "${title.trim()}". Un administrador la revisará.`,
+      relatedEntityType: 'agreement',
+      relatedEntityId: agreementId,
+    })
+  }
+
+  // Avisar a los admins que hay una disputa nueva
+  await notifyAdmins({
+    type: 'dispute_opened',
+    title: 'Nueva disputa para revisar',
+    message: title.trim(),
+    relatedEntityType: 'agreement',
+    relatedEntityId: agreementId,
+  })
 
   revalidatePath('/empresa/acuerdos')
   revalidatePath('/instalador/acuerdos')

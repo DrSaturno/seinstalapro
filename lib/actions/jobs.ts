@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createJobSchema, type CreateJobInput } from '@/lib/validations/job'
+import { notifyAdmins } from './notifications'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/types'
 import type { Job, JobWithCompany, Category, Location } from '@/types/database'
@@ -64,27 +65,55 @@ export async function createJob(
     return { success: false, error: 'No se encontró tu empresa. Completá tu perfil primero.' }
   }
 
+  const details = {
+    is_height_work: validation.data.is_height_work || false,
+    height_meters: validation.data.height_meters || null,
+    requires_special_tools: validation.data.requires_special_tools || false,
+    special_tools_description: validation.data.special_tools_description || null,
+    special_schedule: validation.data.special_schedule || null,
+    surface_type: validation.data.surface_type || null,
+    surface_dimensions: validation.data.surface_dimensions || null,
+    access_details: validation.data.access_details || null,
+    additional_notes: validation.data.additional_notes || null,
+    urgency: validation.data.urgency || 'normal',
+  }
+
   const jobData = {
     company_id: company.id,
     title: validation.data.title,
     description: validation.data.description,
     category_id: validation.data.category_id,
     location_id: validation.data.location_id || null,
+    address: validation.data.address || null,
+    details,
     budget_min: validation.data.budget_min || null,
     budget_max: validation.data.budget_max || null,
-    currency: validation.data.currency,
+    currency: validation.data.currency || 'ARS',
     start_date: validation.data.start_date || null,
     end_date: validation.data.end_date || null,
     status: 'draft' as const,
   }
 
-  const { data: newJob, error } = await supabase
+  let { data: newJob, error } = await supabase
     .from('jobs')
     .insert(jobData)
     .select('id')
     .single()
 
-  if (error) {
+  // Fallback: si las columnas details/address aun no existen en la base
+  // (migracion pendiente), reintentar sin ellas para no bloquear la creacion
+  if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+    const { details: _d, address: _a, ...legacyData } = jobData
+    const retry = await supabase
+      .from('jobs')
+      .insert(legacyData)
+      .select('id')
+      .single()
+    newJob = retry.data
+    error = retry.error
+  }
+
+  if (error || !newJob) {
     console.error('Error creando trabajo:', error)
     return { success: false, error: 'Error al crear el trabajo. Intentá de nuevo.' }
   }
@@ -179,7 +208,7 @@ export async function submitJobForReview(
 
   const { data: job } = await supabase
     .from('jobs')
-    .select('id, status')
+    .select('id, status, title')
     .eq('id', jobId)
     .eq('company_id', company.id)
     .single()
@@ -200,6 +229,15 @@ export async function submitJobForReview(
   if (error) {
     return { success: false, error: 'Error al enviar a revisión' }
   }
+
+  // Avisar a los admins que hay un trabajo esperando moderación
+  await notifyAdmins({
+    type: 'system',
+    title: 'Nuevo trabajo para moderar',
+    message: `"${job.title}" está pendiente de aprobación.`,
+    relatedEntityType: 'job',
+    relatedEntityId: jobId,
+  })
 
   revalidatePath('/empresa/trabajos')
   revalidatePath(`/empresa/trabajos/${jobId}`)
@@ -307,10 +345,15 @@ export async function uploadJobFiles(
       return { success: false, error: 'Error al guardar los archivos' }
     }
 
-    // Actualizar contador de archivos
+    // Actualizar contador con el total real de archivos del trabajo
+    const { count } = await supabase
+      .from('job_files')
+      .select('id', { count: 'exact', head: true })
+      .eq('job_id', jobId)
+
     await supabase
       .from('jobs')
-      .update({ files_count: uploadedFiles.length })
+      .update({ files_count: count || uploadedFiles.length })
       .eq('id', jobId)
   }
 

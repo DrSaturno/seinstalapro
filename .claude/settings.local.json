@@ -17,7 +17,21 @@
       "PowerShell(Stop-Process -Force -Confirm:$false)",
       "mcp__Claude_Preview__preview_start",
       "Bash(node -e \"const l = require\\('lucide-react'\\); const icons = ['LayoutDashboard','Briefcase','FileText','MessageSquare','Building2','Wrench','Users','Shield','Star','Settings','AlertTriangle','Search','ClipboardList','Handshake','UserCircle']; icons.forEach\\(i => console.log\\(i + ': ' + \\(l[i] ? 'OK' : 'MISSING'\\)\\)\\)\")",
-      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\('FileCheck2: ' + \\(l['FileCheck2'] ? 'OK' : 'MISSING'\\)\\)\")"
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\('FileCheck2: ' + \\(l['FileCheck2'] ? 'OK' : 'MISSING'\\)\\)\")",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__list_projects",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__list_teams",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__get_runtime_logs",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__get_project",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__list_deployments",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__get_deployment",
+      "Bash(timeout 90 bash -c 'while true; do sleep 15; echo \"checking...\"; done')",
+      "Bash(node scripts/seed-test-data.js)",
+      "Bash(npm ls *)",
+      "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__get_deployment_build_logs",
+      "WebFetch(domain:seinstalapro.vercel.app)",
+      "PowerShell(git -C \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documentos\\\\Planeta Saturno\\\\Claude\\\\seinstalapro\" status)",
+      "PowerShell(git -C \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documentos\\\\Planeta Saturno\\\\Claude\\\\seinstalapro\" diff --stat)"
     ]
   }
 }

@@ -5,7 +5,9 @@
 // ============================================================
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notifications'
 import type { ActionResult } from '@/lib/actions/types'
 import { createOfferSchema } from '@/lib/validations/installer'
 import type {
@@ -79,6 +81,16 @@ export async function getJobDetailForInstaller(jobId: string): Promise<{
 
   if (!job) return { job: null, myOffer: null }
 
+  // Archivos del trabajo: el job ya fue validado como visible para el
+  // instalador, los archivos se obtienen con admin para evitar RLS de empresa
+  const adminClient = createAdminClient()
+  const { data: jobFiles } = await adminClient
+    .from('job_files')
+    .select('*')
+    .eq('job_id', jobId)
+    .order('order_index')
+  ;(job as any).files = jobFiles || []
+
   // Ver si ya tiene oferta en este trabajo
   let myOffer: Offer | null = null
   if (user) {
@@ -138,7 +150,7 @@ export async function createOffer(
   // Verificar que el trabajo acepte ofertas
   const { data: job } = await supabase
     .from('jobs')
-    .select('id, status')
+    .select('id, status, title, company:companies(profile_id)')
     .eq('id', validation.data.job_id)
     .in('status', ['published', 'receiving_offers'])
     .single()
@@ -210,6 +222,19 @@ export async function createOffer(
       .from('jobs')
       .update({ offers_count: (currentJob.offers_count || 0) + 1 })
       .eq('id', job_id)
+  }
+
+  // Notificar a la empresa que recibió una nueva oferta
+  const companyProfileId = (job as any).company?.profile_id
+  if (companyProfileId) {
+    await createNotification({
+      userId: companyProfileId,
+      type: 'offer_received',
+      title: 'Recibiste una nueva oferta',
+      message: `Un instalador ofertó en "${(job as any).title}".`,
+      relatedEntityType: 'job',
+      relatedEntityId: job_id,
+    })
   }
 
   revalidatePath('/instalador/ofertas')

@@ -25,6 +25,70 @@ export async function getCompanyProfile(): Promise<Company | null> {
   return data as Company | null
 }
 
+// --- Obtener estadisticas de la empresa ---
+export async function getCompanyStats(): Promise<{
+  totalJobs: number
+  publishedJobs: number
+  pendingOffers: number
+  activeAgreements: number
+  completedJobs: number
+}> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { totalJobs: 0, publishedJobs: 0, pendingOffers: 0, activeAgreements: 0, completedJobs: 0 }
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('id')
+    .eq('profile_id', user.id)
+    .single()
+
+  if (!company) return { totalJobs: 0, publishedJobs: 0, pendingOffers: 0, activeAgreements: 0, completedJobs: 0 }
+
+  // Obtener jobs
+  const { data: jobs } = await supabase
+    .from('jobs')
+    .select('id, status, offers_count')
+    .eq('company_id', company.id)
+
+  const allJobs = jobs || []
+  const totalJobs = allJobs.length
+  const publishedJobs = allJobs.filter(j =>
+    ['published', 'receiving_offers', 'offer_accepted', 'in_progress'].includes(j.status)
+  ).length
+  const completedJobs = allJobs.filter(j =>
+    ['approved', 'rated', 'completed_by_installer', 'under_company_review'].includes(j.status)
+  ).length
+
+  // Ofertas pendientes (sent) para los jobs de la empresa
+  const jobIds = allJobs.map(j => j.id)
+  let pendingOffers = 0
+  if (jobIds.length > 0) {
+    const { count } = await supabase
+      .from('offers')
+      .select('id', { count: 'exact', head: true })
+      .in('job_id', jobIds)
+      .eq('status', 'sent')
+    pendingOffers = count || 0
+  }
+
+  // Acuerdos activos
+  const { count: activeAgreements } = await supabase
+    .from('agreements')
+    .select('id', { count: 'exact', head: true })
+    .eq('company_id', company.id)
+    .in('status', ['active', 'coordinating', 'confirmed', 'in_progress'])
+
+  return {
+    totalJobs,
+    publishedJobs,
+    pendingOffers,
+    activeAgreements: activeAgreements || 0,
+    completedJobs,
+  }
+}
+
 // --- Actualizar perfil de empresa ---
 export async function updateCompanyProfile(
   data: CompanyProfileInput

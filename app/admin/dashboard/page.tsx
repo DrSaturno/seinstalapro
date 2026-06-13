@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   Building2,
   Wrench,
@@ -10,6 +11,9 @@ import {
   Users,
   Clock,
   Activity,
+  ArrowRight,
+  ScrollText,
+  Settings,
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { StatsCard } from '@/components/ui/StatsCard'
@@ -107,29 +111,62 @@ export default function AdminDashboardPage() {
         />
       </div>
 
-      {/* Stats de moderación */}
+      {/* Stats de moderación (clickeables) */}
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Pendientes de moderación
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <StatsCard
-          title="Empresas por verificar"
-          value={stats?.pendingCompanies || 0}
-          icon={Shield}
-          color="purple"
-        />
-        <StatsCard
-          title="Instaladores por aprobar"
-          value={stats?.pendingInstallers || 0}
-          icon={Users}
-          color="accent"
-        />
-        <StatsCard
-          title="Trabajos por moderar"
-          value={stats?.pendingJobs || 0}
-          icon={Clock}
-          color="primary"
-        />
+        <Link href="/admin/empresas" className="block hover:opacity-90 transition-opacity">
+          <StatsCard
+            title="Empresas por verificar"
+            value={stats?.pendingCompanies || 0}
+            icon={Shield}
+            color="purple"
+            description="Click para gestionar"
+          />
+        </Link>
+        <Link href="/admin/instaladores" className="block hover:opacity-90 transition-opacity">
+          <StatsCard
+            title="Instaladores por aprobar"
+            value={stats?.pendingInstallers || 0}
+            icon={Users}
+            color="accent"
+            description="Click para gestionar"
+          />
+        </Link>
+        <Link href="/admin/trabajos" className="block hover:opacity-90 transition-opacity">
+          <StatsCard
+            title="Trabajos por moderar"
+            value={stats?.pendingJobs || 0}
+            icon={Clock}
+            color="primary"
+            description="Click para gestionar"
+          />
+        </Link>
+      </div>
+
+      {/* Accesos rápidos */}
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        Administración
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        {[
+          { href: '/admin/empresas', label: 'Empresas', icon: Building2 },
+          { href: '/admin/instaladores', label: 'Instaladores', icon: Wrench },
+          { href: '/admin/trabajos', label: 'Trabajos', icon: Briefcase },
+          { href: '/admin/disputas', label: 'Disputas', icon: AlertTriangle },
+          { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
+          { href: '/admin/auditoria', label: 'Auditoría', icon: ScrollText },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center gap-2 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:shadow-sm transition-all group"
+          >
+            <item.icon size={20} className="text-gray-400 group-hover:text-primary-600 transition-colors" />
+            <span className="text-xs font-medium text-gray-700">{item.label}</span>
+          </Link>
+        ))}
       </div>
 
       {/* Actividad reciente */}

@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Bell, Check, CheckCheck, Info, Star, AlertTriangle, FileCheck2, ClipboardList, XCircle, CheckCircle2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Bell, Check, CheckCheck, Info, Star, AlertTriangle, FileCheck2, ClipboardList, XCircle, CheckCircle2, ShieldCheck, ShieldX, ShieldAlert, MessageSquare } from 'lucide-react'
 import { formatRelativeDate } from '@/lib/utils/format'
 import {
   getUserNotifications,
   markNotificationRead,
   markAllNotificationsRead,
 } from '@/lib/actions/notifications'
+import { useAuth } from '@/providers/AuthProvider'
 import type { Notification } from '@/types/database'
 
 const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string; bgColor: string }> = {
@@ -20,15 +22,53 @@ const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string; bgColor: st
   review_received: { icon: Star, color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
   job_approved: { icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-50' },
   job_rejected: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50' },
+  account_verified: { icon: ShieldCheck, color: 'text-green-600', bgColor: 'bg-green-50' },
+  account_rejected: { icon: ShieldX, color: 'text-red-600', bgColor: 'bg-red-50' },
+  account_suspended: { icon: ShieldAlert, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  message_received: { icon: MessageSquare, color: 'text-blue-600', bgColor: 'bg-blue-50' },
   system: { icon: Info, color: 'text-gray-600', bgColor: 'bg-gray-50' },
 }
 
 export function NotificationDropdown() {
+  const router = useRouter()
+  const { profile } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Resolver a dónde navega cada notificación según rol y entidad
+  const getNotificationLink = useCallback(
+    (notif: Notification): string | null => {
+      const role = profile?.role
+      if (!role) return null
+      const base =
+        role === 'company' ? '/empresa' : role === 'installer' ? '/instalador' : '/admin'
+
+      switch (notif.related_entity_type) {
+        case 'job':
+          if (role === 'admin') return '/admin/trabajos'
+          if (role === 'company') return `/empresa/trabajos/${notif.related_entity_id}`
+          return `/instalador/trabajos/${notif.related_entity_id}`
+        case 'offer':
+          return role === 'company' ? '/empresa/ofertas' : '/instalador/ofertas'
+        case 'agreement':
+          if (role === 'admin') return '/admin/disputas'
+          if (notif.notification_type === 'message_received') {
+            return `${base}/mensajes?acuerdo=${notif.related_entity_id}`
+          }
+          return `${base}/acuerdos`
+        case 'company':
+          return role === 'admin' ? '/admin/empresas' : '/empresa/perfil'
+        case 'installer':
+          return role === 'admin' ? '/admin/instaladores' : '/instalador/perfil'
+        default:
+          return null
+      }
+    },
+    [profile?.role]
+  )
 
   // Cerrar al hacer click fuera
   useEffect(() => {
@@ -136,7 +176,14 @@ export function NotificationDropdown() {
                 return (
                   <button
                     key={notif.id}
-                    onClick={() => !notif.is_read && handleMarkRead(notif.id)}
+                    onClick={() => {
+                      if (!notif.is_read) handleMarkRead(notif.id)
+                      const link = getNotificationLink(notif)
+                      if (link) {
+                        setIsOpen(false)
+                        router.push(link)
+                      }
+                    }}
                     className={`w-full text-left flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 transition-colors ${
                       notif.is_read
                         ? 'bg-white'
