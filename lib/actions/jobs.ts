@@ -150,7 +150,8 @@ export async function getCompanyJobs(
     .select(`
       *,
       category:categories(*),
-      location:locations(*)
+      location:locations(*),
+      files:job_files(file_url, file_type, order_index)
     `)
     .eq('company_id', company.id)
     .order('created_at', { ascending: false })

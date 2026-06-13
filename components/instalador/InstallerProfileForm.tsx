@@ -19,6 +19,8 @@ import {
   addInstallerSkill,
   removeInstallerSkill,
 } from '@/lib/actions/installer'
+import { uploadAvatar } from '@/lib/actions/uploads'
+import { AvatarUpload } from '@/components/ui/AvatarUpload'
 import { X, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Installer, Profile, InstallerStatus } from '@/types/database'
@@ -152,6 +154,20 @@ export function InstallerProfileForm() {
           )}
         </div>
       )}
+
+      {/* Foto de perfil */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Foto de perfil
+        </h3>
+        <AvatarUpload
+          currentUrl={installer?.profile?.avatar_url}
+          fallback={installer?.profile?.full_name || 'I'}
+          onUpload={uploadAvatar}
+          size="xl"
+          label="Cambiar foto"
+        />
+      </div>
 
       {/* Formulario de perfil */}
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl border border-gray-200 p-6">

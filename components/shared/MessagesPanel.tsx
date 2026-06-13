@@ -5,7 +5,8 @@
 // ============================================================
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MessageSquare, Send, ArrowLeft } from 'lucide-react'
+import { MessageSquare, Send, ArrowLeft, Paperclip } from 'lucide-react'
+import { toast } from 'sonner'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -252,19 +253,19 @@ export function MessagesPanel({ initialAgreementId }: MessagesPanelProps) {
                     >
                       <div
                         className={clsx(
-                          'max-w-[75%] rounded-2xl px-4 py-2',
+                          'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
                           isMine
-                            ? 'bg-primary-600 text-white rounded-br-sm'
-                            : 'bg-gray-100 text-gray-900 rounded-bl-sm'
+                            ? 'bg-primary-600 text-white rounded-tr-none shadow-primary-500/5'
+                            : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200/50'
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap break-words">
+                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                           {msg.message_text}
                         </p>
                         <p
                           className={clsx(
-                            'text-[10px] mt-1',
-                            isMine ? 'text-primary-100' : 'text-gray-400'
+                            'text-[9px] font-bold mt-1.5 block text-right',
+                            isMine ? 'text-primary-100' : 'text-slate-400'
                           )}
                         >
                           {formatRelativeDate(msg.created_at)}
@@ -278,8 +279,18 @@ export function MessagesPanel({ initialAgreementId }: MessagesPanelProps) {
             </div>
 
             {/* Input de envío */}
-            <div className="border-t border-gray-200 p-3">
-              <div className="flex items-end gap-2">
+            <div className="border-t border-slate-100 p-4 bg-white">
+              <div className="flex items-center gap-3">
+                {/* Botón Adjuntar Archivo */}
+                <button
+                  type="button"
+                  onClick={() => toast.info('La carga de archivos compartidos estará disponible próximamente en este chat.')}
+                  className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border border-slate-100"
+                  aria-label="Adjuntar archivo"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </button>
+
                 <textarea
                   rows={1}
                   value={newMessage}
@@ -290,8 +301,8 @@ export function MessagesPanel({ initialAgreementId }: MessagesPanelProps) {
                       handleSend()
                     }
                   }}
-                  placeholder="Escribí un mensaje..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-sm"
+                  placeholder="Escribe un mensaje..."
+                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 resize-none text-sm leading-normal max-h-24 min-h-[40px] transition-all"
                   maxLength={2000}
                 />
                 <Button
@@ -300,6 +311,7 @@ export function MessagesPanel({ initialAgreementId }: MessagesPanelProps) {
                   disabled={!newMessage.trim()}
                   size="sm"
                   aria-label="Enviar mensaje"
+                  className="rounded-xl h-10 w-10 p-0 flex items-center justify-center shrink-0"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

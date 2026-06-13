@@ -104,68 +104,68 @@ export default function EmpresaDashboardPage() {
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Acciones rapidas
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Link href="/empresa/trabajos/nuevo">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-primary-50">
-                <Plus size={20} className="text-primary-600" />
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100/50 group-hover:bg-primary-50 group-hover:border-primary-100/50 text-slate-400 group-hover:text-primary-600 transition-all duration-200 shrink-0">
+                <Plus size={20} className="transition-colors" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-slate-800 group-hover:text-primary-600 transition-colors truncate">
                   Publicar trabajo
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Crea un nuevo trabajo de instalacion
+                <p className="text-xs text-slate-400 mt-1 truncate">
+                  Crea un nuevo trabajo de instalación
                 </p>
               </div>
               <ArrowRight
                 size={18}
-                className="text-gray-400 group-hover:text-primary-600 transition-colors"
+                className="text-slate-300 group-hover:text-primary-600 transition-all group-hover:translate-x-0.5 duration-200"
               />
             </div>
           </div>
         </Link>
-
+ 
         <Link href="/empresa/trabajos">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-blue-50">
-                <Search size={20} className="text-blue-600" />
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100/50 group-hover:bg-primary-50 group-hover:border-primary-100/50 text-slate-400 group-hover:text-primary-600 transition-all duration-200 shrink-0">
+                <Search size={20} className="transition-colors" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-slate-800 group-hover:text-primary-600 transition-colors truncate">
                   Mis trabajos
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-slate-400 mt-1 truncate">
                   Gestiona tus publicaciones
                 </p>
               </div>
               <ArrowRight
                 size={18}
-                className="text-gray-400 group-hover:text-primary-600 transition-colors"
+                className="text-slate-300 group-hover:text-primary-600 transition-all group-hover:translate-x-0.5 duration-200"
               />
             </div>
           </div>
         </Link>
-
+ 
         <Link href="/empresa/ofertas">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-accent-50">
-                <ClipboardList size={20} className="text-accent-600" />
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100/50 group-hover:bg-primary-50 group-hover:border-primary-100/50 text-slate-400 group-hover:text-primary-600 transition-all duration-200 shrink-0">
+                <ClipboardList size={20} className="transition-colors" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 group-hover:text-primary-700">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-slate-800 group-hover:text-primary-600 transition-colors truncate">
                   Ofertas recibidas
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-slate-400 mt-1 truncate">
                   Revisa propuestas de instaladores
                 </p>
               </div>
               <ArrowRight
                 size={18}
-                className="text-gray-400 group-hover:text-primary-600 transition-colors"
+                className="text-slate-300 group-hover:text-primary-600 transition-all group-hover:translate-x-0.5 duration-200"
               />
             </div>
           </div>

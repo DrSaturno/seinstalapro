@@ -1,24 +1,51 @@
 'use client'
 
 import Link from 'next/link'
-import { MapPin, Calendar, DollarSign, Building2, Tag } from 'lucide-react'
+import { MapPin, Calendar, DollarSign, Building2, Tag, Image as ImageIcon } from 'lucide-react'
 import { formatCurrency, formatRelativeDate } from '@/lib/utils/format'
-import type { Job, Company, Category, Location, Profile } from '@/types/database'
+import type { Job, Company, Category, Location, Profile, JobFile } from '@/types/database'
 
 interface JobSearchCardProps {
   job: Job & {
     company?: Company & { profile?: Pick<Profile, 'full_name'> }
     category?: Category
     location?: Location
+    files?: JobFile[]
   }
+}
+
+function getFirstImageUrl(files?: JobFile[]): string | null {
+  if (!files || files.length === 0) return null
+  const images = files
+    .filter((f) => f.file_type === 'image')
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  return images[0]?.file_url || null
 }
 
 export function JobSearchCard({ job }: JobSearchCardProps) {
   const company = job.company as any
+  const thumbnailUrl = getFirstImageUrl(job.files)
 
   return (
     <Link href={`/instalador/trabajos/${job.id}`}>
-      <div className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer">
+        <div className="flex">
+        {/* Thumbnail */}
+        {thumbnailUrl ? (
+          <div className="hidden sm:block w-36 shrink-0">
+            <img
+              src={thumbnailUrl}
+              alt={job.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="hidden sm:flex w-36 shrink-0 bg-gray-50 items-center justify-center">
+            <ImageIcon className="h-8 w-8 text-gray-200" />
+          </div>
+        )}
+
+        <div className="flex-1 p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <h3 className="font-semibold text-gray-900 line-clamp-1">
@@ -95,6 +122,8 @@ export function JobSearchCard({ job }: JobSearchCardProps) {
             </span>
           </div>
         )}
+        </div>
+        </div>
       </div>
     </Link>
   )

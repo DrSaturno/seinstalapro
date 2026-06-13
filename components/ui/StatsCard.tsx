@@ -16,22 +16,6 @@ interface StatsCardProps {
   className?: string
 }
 
-const colorStyles = {
-  primary: 'bg-primary-50 text-primary-600',
-  accent: 'bg-accent-50 text-accent-600',
-  green: 'bg-green-50 text-green-600',
-  red: 'bg-red-50 text-red-600',
-  purple: 'bg-purple-50 text-purple-600',
-}
-
-const valueColors = {
-  primary: 'text-primary-600',
-  accent: 'text-accent-600',
-  green: 'text-green-600',
-  red: 'text-red-600',
-  purple: 'text-purple-600',
-}
-
 export function StatsCard({
   title,
   value,
@@ -44,43 +28,52 @@ export function StatsCard({
   return (
     <div
       className={clsx(
-        'bg-white rounded-xl border border-gray-200 p-6 hover:shadow-sm transition-shadow',
+        'bg-white rounded-2xl border border-slate-100 p-6 shadow-sm shadow-slate-100/30 hover:shadow-md hover:shadow-slate-100/60 hover:-translate-y-0.5 transition-all duration-300',
         className
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p
-            className={clsx(
-              'text-3xl font-bold mt-1',
-              valueColors[color]
-            )}
-          >
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+            {title}
+          </p>
+          <p className="text-3xl font-extrabold text-slate-800 tracking-tight mt-2.5 leading-none">
             {value}
           </p>
-          {description && (
-            <p className="text-xs text-gray-400 mt-1">{description}</p>
+          
+          {description && !trend && (
+            <p className="text-xs font-semibold text-slate-400 mt-2 leading-none">{description}</p>
           )}
+
           {trend && (
-            <p
-              className={clsx(
-                'text-xs font-medium mt-2',
-                trend.isPositive ? 'text-green-600' : 'text-red-600'
-              )}
-            >
-              {trend.isPositive ? '+' : ''}
-              {trend.value}% vs. mes anterior
-            </p>
+            <div className="flex items-center gap-1.5 mt-3">
+              <span
+                className={clsx(
+                  'inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border',
+                  trend.isPositive
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100/50'
+                    : 'bg-rose-50 text-rose-700 border-rose-100/50'
+                )}
+              >
+                {trend.isPositive ? '↑' : '↓'} {trend.isPositive ? '+' : ''}
+                {trend.value}%
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400">vs. período anterior</span>
+            </div>
           )}
         </div>
+
         <div
           className={clsx(
-            'p-3 rounded-xl flex-shrink-0',
-            colorStyles[color]
+            'p-3 rounded-2xl flex-shrink-0 border',
+            color === 'primary' && 'bg-blue-50 text-blue-600 border-blue-100/50',
+            color === 'accent' && 'bg-amber-50 text-amber-600 border-amber-100/50',
+            color === 'green' && 'bg-emerald-50 text-emerald-600 border-emerald-100/50',
+            color === 'red' && 'bg-rose-50 text-rose-600 border-rose-100/50',
+            color === 'purple' && 'bg-purple-50 text-purple-600 border-purple-100/50'
           )}
         >
-          <Icon className="h-6 w-6" />
+          <Icon className="h-5 w-5" />
         </div>
       </div>
     </div>

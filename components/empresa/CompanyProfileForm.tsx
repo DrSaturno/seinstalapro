@@ -8,9 +8,11 @@ import {
   type CompanyProfileInput,
 } from '@/lib/validations/company'
 import { getCompanyProfile, updateCompanyProfile } from '@/lib/actions/company'
+import { uploadCompanyLogo } from '@/lib/actions/uploads'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
+import { AvatarUpload } from '@/components/ui/AvatarUpload'
 import { COMPANY_STATUS } from '@/lib/utils/status'
 import type { Company, CompanyStatus } from '@/types/database'
 import { clsx } from 'clsx'
@@ -109,6 +111,18 @@ export function CompanyProfileForm() {
           </span>
         </div>
       )}
+
+      {/* Logo de la empresa */}
+      <div className="mb-6 bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-sm font-medium text-gray-700 mb-4">Logo de la empresa</h3>
+        <AvatarUpload
+          currentUrl={company?.logo_url}
+          fallback={company?.company_name || 'E'}
+          onUpload={uploadCompanyLogo}
+          size="xl"
+          label="Subir logo"
+        />
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && (

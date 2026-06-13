@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Administración
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {[
           { href: '/admin/empresas', label: 'Empresas', icon: Building2 },
           { href: '/admin/instaladores', label: 'Instaladores', icon: Wrench },
@@ -161,10 +161,12 @@ export default function AdminDashboardPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center gap-2 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-300 hover:shadow-sm transition-all group"
+            className="flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 hover:-translate-y-0.5 transition-all duration-300 group"
           >
-            <item.icon size={20} className="text-gray-400 group-hover:text-primary-600 transition-colors" />
-            <span className="text-xs font-medium text-gray-700">{item.label}</span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100/50 group-hover:bg-primary-50 group-hover:border-primary-100/50 group-hover:text-primary-600 transition-all duration-200 text-slate-400">
+              <item.icon size={20} className="transition-colors" />
+            </div>
+            <span className="text-xs font-bold text-slate-700 tracking-wide text-center">{item.label}</span>
           </Link>
         ))}
       </div>

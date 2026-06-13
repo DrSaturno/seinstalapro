@@ -124,23 +124,24 @@ export default function EmpresaOfertasPage() {
       />
 
       {/* Filtros */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      <div className="flex gap-2.5 flex-wrap mb-8 bg-slate-50 border border-slate-100 rounded-2xl p-2 max-w-max">
         {STATUS_FILTERS.map((f) => {
           const count = f.value === 'all'
             ? offers.length
             : offers.filter((o) => o.status === f.value).length
+          const isActive = filter === f.value
           return (
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                filter === f.value
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
+                isActive
+                  ? 'bg-primary-600 text-white shadow-sm shadow-primary-500/15'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
               }`}
             >
               {f.label}
-              <span className="ml-1 text-xs opacity-75">({count})</span>
+              <span className={`ml-1.5 text-[10px] font-semibold ${isActive ? 'text-primary-100' : 'text-slate-400'}`}>({count})</span>
             </button>
           )
         })}
@@ -172,15 +173,15 @@ export default function EmpresaOfertasPage() {
             return (
               <div
                 key={group.jobId}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm shadow-slate-100/50 mb-6"
               >
                 {/* Header del grupo */}
                 <button
                   onClick={() => toggleJobCollapse(group.jobId)}
-                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-5 hover:bg-slate-50/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary-50">
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-100/30">
                       <Briefcase size={18} className="text-primary-600" />
                     </div>
                     <div className="text-left">
@@ -207,23 +208,25 @@ export default function EmpresaOfertasPage() {
 
                 {/* Ofertas del grupo */}
                 {!isCollapsed && (
-                  <div className="border-t border-gray-100 p-4 space-y-3">
-                    {group.offers.map((offer) => (
-                      <ReceivedOfferCard
-                        key={offer.id}
-                        offer={offer}
-                        onShortlist={handleShortlist}
-                        onAccept={handleAccept}
-                        onReject={handleReject}
-                        isActioning={actioningId === offer.id}
-                        isExpanded={expandedOffer === offer.id}
-                        onToggleExpand={() =>
-                          setExpandedOffer(
-                            expandedOffer === offer.id ? null : offer.id
-                          )
-                        }
-                      />
-                    ))}
+                  <div className="border-t border-slate-100 p-6 bg-slate-50/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {group.offers.map((offer) => (
+                        <ReceivedOfferCard
+                          key={offer.id}
+                          offer={offer}
+                          onShortlist={handleShortlist}
+                          onAccept={handleAccept}
+                          onReject={handleReject}
+                          isActioning={actioningId === offer.id}
+                          isExpanded={expandedOffer === offer.id}
+                          onToggleExpand={() =>
+                            setExpandedOffer(
+                              expandedOffer === offer.id ? null : offer.id
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

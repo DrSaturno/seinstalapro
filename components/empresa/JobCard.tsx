@@ -15,7 +15,8 @@ import {
 import { JobStatusBadge } from './JobStatusBadge'
 import { formatRelativeDate, truncate, formatBudgetRange } from '@/lib/utils/format'
 import { Button } from '@/components/ui/Button'
-import type { JobWithCompany, JobDetails } from '@/types/database'
+import { Image as ImageIcon } from 'lucide-react'
+import type { JobWithCompany, JobDetails, JobFile } from '@/types/database'
 
 interface JobCardProps {
   job: JobWithCompany
@@ -29,12 +30,38 @@ const URGENCY_LABELS: Record<string, { label: string; color: string }> = {
   urgent: { label: 'Urgente', color: 'text-red-600' },
 }
 
+function getFirstImageUrl(files?: JobFile[]): string | null {
+  if (!files || files.length === 0) return null
+  const images = files
+    .filter((f) => f.file_type === 'image')
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  return images[0]?.file_url || null
+}
+
 export function JobCard({ job, basePath = '/empresa/trabajos' }: JobCardProps) {
   const details = (job.details || {}) as JobDetails
   const urgency = details.urgency ? URGENCY_LABELS[details.urgency] : null
+  const thumbnailUrl = getFirstImageUrl(job.files)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition-all">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-primary-200 transition-all">
+      <div className="flex">
+        {/* Thumbnail */}
+        {thumbnailUrl ? (
+          <div className="hidden sm:block w-40 shrink-0">
+            <img
+              src={thumbnailUrl}
+              alt={job.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="hidden sm:flex w-40 shrink-0 bg-gray-50 items-center justify-center">
+            <ImageIcon className="h-10 w-10 text-gray-200" />
+          </div>
+        )}
+
+        <div className="flex-1 p-5">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 leading-tight">
@@ -123,6 +150,8 @@ export function JobCard({ job, basePath = '/empresa/trabajos' }: JobCardProps) {
             Ver detalle
           </Button>
         </Link>
+      </div>
+        </div>
       </div>
     </div>
   )

@@ -48,29 +48,29 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
   const roleLabel = profile?.role ? ROLE_LABELS[profile.role] : ''
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-100/30">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         {/* Izquierda: Hamburger + Título */}
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
             aria-label="Abrir menú"
           >
             <Menu className="h-5 w-5" />
           </button>
         </div>
-
+ 
         {/* Derecha: Notificaciones + Perfil */}
         <div className="flex items-center gap-2">
           {/* Notificaciones */}
           <NotificationDropdown />
-
+ 
           {/* Perfil dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100/80 transition-all duration-200"
             >
               <Avatar
                 src={profile?.avatar_url}
@@ -78,33 +78,33 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
                 size="sm"
               />
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-gray-900 leading-tight">
+                <p className="text-sm font-semibold text-slate-800 leading-tight">
                   {displayName}
                 </p>
-                <p className="text-xs text-gray-500 leading-tight">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 leading-none">
                   {roleLabel}
                 </p>
               </div>
               <ChevronDown
-                className={`h-4 w-4 text-gray-400 transition-transform ${
+                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
                   isDropdownOpen ? 'rotate-180' : ''
                 }`}
               />
             </button>
-
+ 
             {/* Dropdown menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <div className="absolute right-0 mt-2.5 w-60 bg-white rounded-2xl shadow-[0_12px_30px_-4px_rgba(0,0,0,0.08)] border border-slate-100 p-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* Info del usuario */}
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="px-4 py-3.5 border-b border-slate-50 bg-slate-50/50 rounded-xl mb-1.5">
+                  <p className="text-sm font-semibold text-slate-800">
                     {displayName}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-slate-500 truncate mt-0.5">
                     {user?.email}
                   </p>
                 </div>
-
+ 
                 {/* Links */}
                 <button
                   onClick={() => {
@@ -117,17 +117,17 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
                         : '/admin/configuracion'
                     router.push(profilePath)
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-xl text-left"
                 >
-                  <User className="h-4 w-4 text-gray-400" />
+                  <User className="h-4 w-4 text-slate-400" />
                   Mi perfil
                 </button>
-
-                <div className="border-t border-gray-100 my-1" />
-
+ 
+                <div className="border-t border-slate-50 my-1" />
+ 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50/80 transition-colors rounded-xl text-left"
                 >
                   <LogOut className="h-4 w-4" />
                   Cerrar sesión

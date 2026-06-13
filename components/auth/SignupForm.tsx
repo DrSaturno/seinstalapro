@@ -88,23 +88,23 @@ export function SignupForm() {
         <label className="block text-sm font-medium text-gray-700 mb-3">
           ¿Qué tipo de cuenta necesitás?
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setValue('role', 'company', { shouldValidate: true })}
-            className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+            className={`flex flex-col items-center gap-2.5 p-5 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
               selectedRole === 'company'
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                ? 'border-primary-500 bg-primary-50/70 text-primary-700 shadow-sm shadow-primary-500/5'
+                : 'border-slate-100 bg-slate-50/50 hover:border-slate-200 hover:bg-slate-50 text-slate-500'
             }`}
           >
             <Building2
-              className={`h-8 w-8 ${
-                selectedRole === 'company' ? 'text-primary-500' : 'text-gray-400'
+              className={`h-8 w-8 transition-colors ${
+                selectedRole === 'company' ? 'text-primary-600' : 'text-slate-400'
               }`}
             />
-            <span className="font-medium text-sm">Empresa</span>
-            <span className="text-xs text-center leading-tight">
+            <span className="font-bold text-sm">Empresa</span>
+            <span className="text-[11px] text-center leading-normal text-slate-400">
               Publicá trabajos de instalación
             </span>
           </button>
@@ -112,19 +112,19 @@ export function SignupForm() {
           <button
             type="button"
             onClick={() => setValue('role', 'installer', { shouldValidate: true })}
-            className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+            className={`flex flex-col items-center gap-2.5 p-5 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
               selectedRole === 'installer'
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                ? 'border-primary-500 bg-primary-50/70 text-primary-700 shadow-sm shadow-primary-500/5'
+                : 'border-slate-100 bg-slate-50/50 hover:border-slate-200 hover:bg-slate-50 text-slate-500'
             }`}
           >
             <Wrench
-              className={`h-8 w-8 ${
-                selectedRole === 'installer' ? 'text-primary-500' : 'text-gray-400'
+              className={`h-8 w-8 transition-colors ${
+                selectedRole === 'installer' ? 'text-primary-600' : 'text-slate-400'
               }`}
             />
-            <span className="font-medium text-sm">Instalador</span>
-            <span className="text-xs text-center leading-tight">
+            <span className="font-bold text-sm">Instalador</span>
+            <span className="text-[11px] text-center leading-normal text-slate-400">
               Ofrecé tus servicios
             </span>
           </button>

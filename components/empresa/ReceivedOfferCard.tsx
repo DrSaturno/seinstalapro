@@ -13,11 +13,12 @@ import {
   Wrench,
   Phone,
   Mail,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { OFFER_STATUS } from '@/lib/utils/status'
-import { formatCurrency, formatRelativeDate, formatDateLong } from '@/lib/utils/format'
+import { formatCurrency, formatRelativeDate } from '@/lib/utils/format'
 import type { OfferWithInstaller } from '@/lib/actions/types'
 import type { OfferStatus } from '@/types/database'
 
@@ -43,293 +44,269 @@ export function ReceivedOfferCard({
   const statusConfig = OFFER_STATUS[offer.status as OfferStatus]
   const installer = offer.installer
   const profile = installer?.profile
+  const isRecommended = (installer?.avg_rating || 0) >= 4.5
 
   return (
-    <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-      {/* Header compacto */}
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-3">
-            <Avatar
-              fallback={profile?.full_name || 'Instalador'}
-              src={profile?.avatar_url}
-              size="md"
-            />
+    <div
+      className={clsx(
+        'bg-white rounded-3xl border transition-all duration-300 relative flex flex-col justify-between overflow-hidden',
+        isRecommended
+          ? 'border-primary-100 shadow-[0_12px_30px_-4px_rgba(37,99,235,0.06)] ring-1 ring-primary-100/50'
+          : 'border-slate-100 shadow-sm shadow-slate-100/40'
+      )}
+    >
+      {/* Badge Recomendado / Estado */}
+      <div className="absolute top-3 right-3 z-10 flex gap-1.5 items-center">
+        {isRecommended && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-100/50 shadow-sm shadow-amber-500/5">
+            <Star size={10} className="fill-current" />
+            Recomendado
+          </span>
+        )}
+      </div>
+
+      <div className="p-6 pb-4 flex-1">
+        {/* Info Instalador */}
+        <div className="flex flex-col items-center text-center mt-2 mb-6">
+          <Avatar
+            fallback={profile?.full_name || 'Instalador'}
+            src={profile?.avatar_url}
+            size="lg"
+            className="ring-4 ring-slate-50"
+          />
+          <h4 className="font-extrabold text-slate-800 mt-3 flex items-center gap-1.5 text-base">
+            {profile?.full_name || 'Instalador'}
+            {installer?.is_verified && (
+              <ShieldCheck className="h-4 w-4 text-emerald-500 fill-emerald-50" />
+            )}
+          </h4>
+          <span className="text-xs text-slate-400 mt-0.5">Instalador Gráfico</span>
+        </div>
+
+        {/* Precio Destacado */}
+        <div className="text-center bg-slate-50 rounded-2xl py-4.5 px-4 mb-6 border border-slate-100/50">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Precio Total</span>
+          <span className="text-2xl font-extrabold text-slate-800 mt-1 block">
+            {formatCurrency(offer.proposed_price, offer.currency)}
+          </span>
+          <span className="text-[10px] text-slate-400 mt-0.5 block">Incluye impuestos</span>
+        </div>
+
+        {/* Tabla Comparativa de Atributos */}
+        <div className="divide-y divide-slate-100 text-sm">
+          <div className="py-3 flex justify-between items-center">
+            <span className="text-xs font-semibold text-slate-400">Calificación promedio</span>
+            <span className="font-bold text-slate-800 flex items-center gap-1">
+              {installer?.avg_rating ? (
+                <>
+                  <Star size={14} className="text-amber-500 fill-amber-500" />
+                  {installer.avg_rating.toFixed(1)}
+                  <span className="text-xs font-medium text-slate-400">({installer.total_reviews})</span>
+                </>
+              ) : (
+                <span className="text-xs font-medium text-slate-400 italic">Sin reseñas</span>
+              )}
+            </span>
+          </div>
+
+          <div className="py-3 flex justify-between items-center">
+            <span className="text-xs font-semibold text-slate-400">Experiencia</span>
+            <span className="font-bold text-slate-800">
+              {installer?.years_of_experience
+                ? `${installer.years_of_experience} años`
+                : '--'}
+            </span>
+          </div>
+
+          <div className="py-3 flex justify-between items-center">
+            <span className="text-xs font-semibold text-slate-400">Disponibilidad</span>
+            <span className="font-bold text-slate-800 flex items-center gap-1">
+              {offer.availability_start_date ? (
+                <>
+                  <Calendar size={14} className="text-slate-400" />
+                  <span className="text-xs truncate max-w-[120px]">{offer.availability_start_date}</span>
+                </>
+              ) : (
+                'Inmediata'
+              )}
+            </span>
+          </div>
+
+          <div className="py-3 flex justify-between items-center">
+            <span className="text-xs font-semibold text-slate-400">Duración estimada</span>
+            <span className="font-bold text-slate-800 flex items-center gap-1">
+              {offer.estimated_duration_value ? (
+                <>
+                  <Clock size={14} className="text-slate-400" />
+                  <span>{offer.estimated_duration_value} días</span>
+                </>
+              ) : (
+                'A coordinar'
+              )}
+            </span>
+          </div>
+
+          <div className="py-3 flex justify-between items-center">
+            <span className="text-xs font-semibold text-slate-400">Equipo</span>
+            <span className="font-bold text-slate-800 flex items-center gap-1">
+              <Users size={14} className="text-slate-400" />
+              <span>{offer.team_size} {offer.team_size === 1 ? 'persona' : 'personas'}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Botón Detalles Desplegables */}
+        <div className="mt-4 pt-1 flex justify-center">
+          <button
+            onClick={onToggleExpand}
+            className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-bold transition-colors py-1 px-3 rounded-full hover:bg-primary-50"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp size={14} />
+                Ocultar mensaje
+              </>
+            ) : (
+              <>
+                <ChevronDown size={14} />
+                Ver detalles y contacto
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Detalle expandido */}
+      {isExpanded && (
+        <div className="border-t border-slate-100 bg-slate-50/50 p-6 space-y-4 text-sm">
+          {/* Mensaje del instalador */}
+          {offer.message && (
             <div>
-              <p className="font-semibold text-gray-900">
-                {profile?.full_name || 'Instalador'}
-              </p>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                {installer?.avg_rating ? (
-                  <span className="flex items-center gap-0.5">
-                    <Star size={12} className="text-yellow-500 fill-yellow-500" />
-                    {installer.avg_rating.toFixed(1)}
-                    <span className="text-xs">({installer.total_reviews})</span>
-                  </span>
-                ) : (
-                  <span className="text-xs">Sin resenas aun</span>
-                )}
-                {installer?.years_of_experience && (
-                  <span>· {installer.years_of_experience} anos exp.</span>
-                )}
+              <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                Mensaje de la propuesta
+              </h5>
+              <div className="flex gap-2.5 p-3.5 bg-white rounded-2xl border border-slate-100">
+                <MessageSquare size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
+                  {offer.message}
+                </p>
               </div>
+            </div>
+          )}
+
+          {/* Información de contacto */}
+          <div>
+            <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+              Contacto verificado
+            </h5>
+            <div className="space-y-1.5 bg-white rounded-2xl border border-slate-100 p-3.5">
+              {profile?.email && (
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <Mail size={14} className="text-slate-400" />
+                  <span className="truncate">{profile.email}</span>
+                </div>
+              )}
+              {profile?.phone && (
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <Phone size={14} className="text-slate-400" />
+                  <span>{profile.phone}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {installer?.bio && (
+            <div>
+              <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                Bio del Instalador
+              </h5>
+              <p className="text-xs text-slate-500 leading-relaxed pl-1">{installer.bio}</p>
+            </div>
+          )}
+
+          <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex flex-wrap gap-2 justify-between">
+            <span>Enviada {formatRelativeDate(offer.submitted_at)}</span>
             {statusConfig && (
-              <span
-                className={clsx(
-                  'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0',
-                  statusConfig.bgColor,
-                  statusConfig.color
-                )}
-              >
+              <span className={clsx('font-bold uppercase tracking-wider', statusConfig.color)}>
                 {statusConfig.label}
               </span>
             )}
           </div>
         </div>
-
-        {/* Resumen de la oferta */}
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm mb-3">
-          <div className="flex items-center gap-1.5 text-green-700 font-semibold">
-            <DollarSign size={14} />
-            <span>{formatCurrency(offer.proposed_price, offer.currency)}</span>
-          </div>
-
-          {offer.team_size > 1 && (
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <Users size={14} />
-              <span>{offer.team_size} personas</span>
-            </div>
-          )}
-
-          {offer.estimated_duration_value && (
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <Clock size={14} />
-              <span>~{offer.estimated_duration_value} dias</span>
-            </div>
-          )}
-
-          {offer.availability_start_date && (
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <Calendar size={14} />
-              <span>
-                Desde {offer.availability_start_date}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Boton ver detalle */}
-        <button
-          onClick={onToggleExpand}
-          className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp size={16} />
-              Ocultar detalle
-            </>
-          ) : (
-            <>
-              <ChevronDown size={16} />
-              Ver detalle completo
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Detalle expandido */}
-      {isExpanded && (
-        <div className="border-t border-gray-200 bg-white p-4 space-y-4">
-          {/* Mensaje del instalador */}
-          {offer.message && (
-            <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Mensaje del instalador
-              </h4>
-              <div className="flex gap-2 p-3 bg-gray-50 rounded-lg">
-                <MessageSquare size={14} className="text-gray-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{offer.message}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Detalles economicos */}
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              Propuesta economica
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div className="bg-green-50 rounded-lg p-3">
-                <p className="text-xs text-green-600 mb-1">Precio propuesto</p>
-                <p className="text-lg font-bold text-green-800">
-                  {formatCurrency(offer.proposed_price, offer.currency)}
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">Equipo</p>
-                <p className="text-lg font-bold text-gray-800">
-                  {offer.team_size} {offer.team_size === 1 ? 'persona' : 'personas'}
-                </p>
-              </div>
-              {offer.estimated_duration_value && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Duracion estimada</p>
-                  <p className="text-lg font-bold text-gray-800">
-                    ~{offer.estimated_duration_value} dias
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Disponibilidad */}
-          {(offer.availability_start_date || offer.availability_end_date) && (
-            <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Disponibilidad
-              </h4>
-              <div className="flex items-center gap-2 text-sm text-gray-700">
-                <Calendar size={14} className="text-gray-400" />
-                <span>
-                  {offer.availability_start_date && (
-                    <>Desde {offer.availability_start_date}</>
-                  )}
-                  {offer.availability_end_date && (
-                    <> hasta {offer.availability_end_date}</>
-                  )}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Datos del instalador */}
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              Sobre el instalador
-            </h4>
-            <div className="space-y-2">
-              {installer?.bio && (
-                <p className="text-sm text-gray-600">{installer.bio}</p>
-              )}
-
-              <div className="flex flex-wrap gap-3 text-sm">
-                {installer?.years_of_experience && (
-                  <span className="flex items-center gap-1.5 text-gray-600">
-                    <Wrench size={14} className="text-gray-400" />
-                    {installer.years_of_experience} anos de experiencia
-                  </span>
-                )}
-                {installer?.is_verified && (
-                  <span className="flex items-center gap-1 text-green-600 font-medium">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Verificado
-                  </span>
-                )}
-              </div>
-
-              {profile?.email && (
-                <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <Mail size={14} className="text-gray-400" />
-                  {profile.email}
-                </div>
-              )}
-              {profile?.phone && (
-                <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <Phone size={14} className="text-gray-400" />
-                  {profile.phone}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Fechas */}
-          <div className="text-xs text-gray-400 pt-2 border-t border-gray-100 flex flex-wrap gap-3">
-            <span>Enviada {formatRelativeDate(offer.submitted_at)}</span>
-            {offer.reviewed_at && (
-              <span>· Revisada {formatRelativeDate(offer.reviewed_at)}</span>
-            )}
-            {offer.accepted_at && (
-              <span>· Aceptada {formatRelativeDate(offer.accepted_at)}</span>
-            )}
-            {offer.rejected_at && (
-              <span>· Rechazada {formatRelativeDate(offer.rejected_at)}</span>
-            )}
-          </div>
-        </div>
       )}
 
-      {/* Footer: Acciones */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
-        <span className="text-xs text-gray-400">
-          {formatRelativeDate(offer.submitted_at)}
-        </span>
+      {/* Footer: Botones de Acción */}
+      <div className="flex flex-col gap-2 p-6 border-t border-slate-100 bg-slate-50/20">
+        {offer.status === 'sent' && (
+          <div className="flex gap-2 w-full">
+            {onReject && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onReject(offer.id)}
+                disabled={isActioning}
+                className="flex-1 font-semibold text-xs border border-slate-200"
+              >
+                Rechazar
+              </Button>
+            )}
+            {onShortlist && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onShortlist(offer.id)}
+                disabled={isActioning}
+                className="flex-1 font-semibold text-xs"
+              >
+                Preseleccionar
+              </Button>
+            )}
+            {onAccept && (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => onAccept(offer.id)}
+                disabled={isActioning}
+                className="flex-1 font-bold text-xs"
+              >
+                Aceptar
+              </Button>
+            )}
+          </div>
+        )}
 
-        <div className="flex gap-2">
-          {offer.status === 'sent' && (
-            <>
-              {onShortlist && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onShortlist(offer.id)}
-                  disabled={isActioning}
-                >
-                  Preseleccionar
-                </Button>
-              )}
-              {onReject && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onReject(offer.id)}
-                  disabled={isActioning}
-                >
-                  Rechazar
-                </Button>
-              )}
-              {onAccept && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => onAccept(offer.id)}
-                  disabled={isActioning}
-                >
-                  Aceptar
-                </Button>
-              )}
-            </>
-          )}
-          {offer.status === 'shortlisted' && (
-            <>
-              {onReject && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onReject(offer.id)}
-                  disabled={isActioning}
-                >
-                  Rechazar
-                </Button>
-              )}
-              {onAccept && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => onAccept(offer.id)}
-                  disabled={isActioning}
-                >
-                  Aceptar oferta
-                </Button>
-              )}
-            </>
-          )}
-        </div>
+        {offer.status === 'shortlisted' && (
+          <div className="flex gap-2 w-full">
+            {onReject && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onReject(offer.id)}
+                disabled={isActioning}
+                className="flex-1 font-semibold text-xs border border-slate-200"
+              >
+                Rechazar
+              </Button>
+            )}
+            {onAccept && (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => onAccept(offer.id)}
+                disabled={isActioning}
+                className="flex-1 font-bold text-xs"
+              >
+                Seleccionar
+              </Button>
+            )}
+          </div>
+        )}
+
+        {offer.status !== 'sent' && offer.status !== 'shortlisted' && statusConfig && (
+          <div className="text-center py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-semibold text-slate-500">
+            Propuesta {statusConfig.label.toLowerCase()}
+          </div>
+        )}
       </div>
     </div>
   )

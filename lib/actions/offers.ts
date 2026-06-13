@@ -38,7 +38,7 @@ export async function getPublishedJobs(filters?: {
   let query = supabase
     .from('jobs')
     .select(
-      '*, company:companies(company_name, country, profile:profiles(full_name)), category:categories(id, name), location:locations(*)'
+      '*, company:companies(company_name, country, logo_url, profile:profiles(full_name)), category:categories(id, name), location:locations(*), files:job_files(file_url, file_type, order_index)'
     )
     .in('status', ['published', 'receiving_offers'])
     .order('published_at', { ascending: false })
