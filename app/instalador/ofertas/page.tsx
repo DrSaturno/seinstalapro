@@ -28,6 +28,7 @@ export default function InstaladorOfertasPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const loadOffers = async () => {
     setIsLoading(true)
@@ -118,6 +119,10 @@ export default function InstaladorOfertasPage() {
               offer={offer}
               onWithdraw={handleWithdraw}
               isWithdrawing={withdrawingId === offer.id}
+              isExpanded={expandedId === offer.id}
+              onToggleExpand={() =>
+                setExpandedId(expandedId === offer.id ? null : offer.id)
+              }
             />
           ))}
         </div>

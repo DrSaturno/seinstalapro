@@ -533,6 +533,63 @@ export async function updateCategory(
   return { success: true, message: 'Categoría actualizada' }
 }
 
+// --- Obtener todas las ofertas (vista admin) ---
+export async function getAdminOffers(filters?: {
+  status?: string
+  search?: string
+}): Promise<Array<{
+  id: string
+  proposed_price: number
+  currency: string
+  message?: string
+  team_size: number
+  estimated_duration_value?: number
+  availability_start_date?: string
+  availability_end_date?: string
+  status: string
+  submitted_at: string
+  reviewed_at?: string
+  accepted_at?: string
+  rejected_at?: string
+  installer: { id: string; bio?: string; avg_rating?: number; total_reviews?: number; years_of_experience?: number; profile?: { full_name: string; email?: string; avatar_url?: string } } | null
+  job: { id: string; title: string; status: string; category?: { name: string } } | null
+  company: { company_name: string; profile?: { full_name: string } } | null
+}>> {
+  const admin = createAdminClient()
+
+  let query = admin
+    .from('offers')
+    .select(
+      '*, installer:installers(id, bio, avg_rating, total_reviews, years_of_experience, profile:profiles(full_name, email, avatar_url)), job:jobs(id, title, status, category:categories(name), company:companies(company_name, profile:profiles(full_name)))'
+    )
+    .order('created_at', { ascending: false })
+
+  if (filters?.status && filters.status !== 'all') {
+    query = query.eq('status', filters.status)
+  }
+
+  const { data } = await query
+
+  let results = (data || []) as any[]
+
+  // Flatten company from job for easier access
+  results = results.map((offer: any) => ({
+    ...offer,
+    company: offer.job?.company || null,
+  }))
+
+  if (filters?.search) {
+    const search = filters.search.toLowerCase()
+    results = results.filter((o: any) =>
+      o.installer?.profile?.full_name?.toLowerCase().includes(search) ||
+      o.job?.title?.toLowerCase().includes(search) ||
+      o.company?.company_name?.toLowerCase().includes(search)
+    )
+  }
+
+  return results
+}
+
 // --- Obtener logs de auditoría ---
 export async function getAuditLogs(limit: number = 50): Promise<Array<{
   id: string

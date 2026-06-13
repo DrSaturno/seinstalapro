@@ -109,6 +109,7 @@ const adminNav: NavSection[] = [
       { label: 'Empresas', href: '/admin/empresas', icon: Building2 },
       { label: 'Instaladores', href: '/admin/instaladores', icon: Wrench },
       { label: 'Trabajos', href: '/admin/trabajos', icon: Briefcase },
+      { label: 'Ofertas', href: '/admin/ofertas', icon: ClipboardList },
     ],
   },
   {
