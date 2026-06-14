@@ -17,6 +17,14 @@ DELETE FROM messages WHERE agreement_id IN (
   WHERE p.email LIKE '%@test.com'
 );
 
+-- Borrar disputas de test
+DELETE FROM disputes WHERE job_id IN (
+  SELECT j.id FROM jobs j
+  JOIN companies c ON c.id = j.company_id
+  JOIN profiles p ON p.id = c.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
 -- Borrar reseñas de jobs de test
 DELETE FROM reviews WHERE job_id IN (
   SELECT j.id FROM jobs j
