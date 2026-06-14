@@ -49,10 +49,20 @@ WHERE profile_id IN (
 );
 
 -- Aprobar los primeros 15 instaladores
+WITH numbered AS (
+  SELECT i.id,
+         ROW_NUMBER() OVER (ORDER BY i.created_at) AS rn
+  FROM installers i
+  WHERE i.profile_id IN (
+    SELECT id FROM profiles WHERE email LIKE 'instalador%@test.com'
+    ORDER BY email
+    LIMIT 15
+  )
+)
 UPDATE public.installers
 SET status = 'approved',
     approved_at = NOW() - INTERVAL '25 days',
-    bio = CASE (ROW_NUMBER() OVER (ORDER BY created_at)) % 10
+    bio = CASE numbered.rn % 10
       WHEN 1 THEN 'Instalador profesional con más de 8 años de experiencia en vinilos vehiculares y decorativos. Trabajo prolijo y puntual. Cuento con todas las herramientas necesarias.'
       WHEN 2 THEN 'Especialista en señalética corporativa y rótulos. Experiencia en edificios de oficinas, shoppings y locales comerciales. Trabajo en altura certificado.'
       WHEN 3 THEN 'Técnico en instalaciones gráficas de gran formato. Lonas, banners, vallas publicitarias. Disponibilidad para viajar dentro de Buenos Aires y alrededores.'
@@ -64,7 +74,7 @@ SET status = 'approved',
       WHEN 9 THEN 'Técnico matriculado en trabajos en altura. Especialista en instalaciones de gran tamaño en fachadas y medianeras.'
       ELSE 'Instalador gráfico con amplia experiencia en el rubro. Puntualidad, prolijidad y compromiso con cada proyecto.'
     END,
-    years_of_experience = CASE (ROW_NUMBER() OVER (ORDER BY created_at)) % 6
+    years_of_experience = CASE numbered.rn % 6
       WHEN 0 THEN 3
       WHEN 1 THEN 8
       WHEN 2 THEN 12
@@ -72,11 +82,8 @@ SET status = 'approved',
       WHEN 4 THEN 15
       WHEN 5 THEN 7
     END
-WHERE profile_id IN (
-  SELECT id FROM profiles WHERE email LIKE 'instalador%@test.com'
-  ORDER BY email
-  LIMIT 15
-);
+FROM numbered
+WHERE installers.id = numbered.id;
 
 -- ============================================================
 -- PASO 2: Agregar habilidades a instaladores
