@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Building2, Search, ExternalLink } from 'lucide-react'
+import { Building2, Search, Globe, MapPin, FileText, Mail, Phone, Calendar, ChevronDown, ChevronUp } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
+import { Avatar } from '@/components/ui/Avatar'
 import { CompanyStatusBadge } from '@/components/admin/CompanyStatusBadge'
 import { StatusActionModal } from '@/components/admin/StatusActionModal'
 import { getAdminCompanies, updateCompanyStatus } from '@/lib/actions/admin'
@@ -26,6 +27,7 @@ export default function AdminEmpresasPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [modal, setModal] = useState<{
     isOpen: boolean
     companyId: string
@@ -131,7 +133,7 @@ export default function AdminEmpresasPage() {
         </div>
       </div>
 
-      {/* Tabla */}
+      {/* Lista */}
       {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
@@ -142,143 +144,18 @@ export default function AdminEmpresasPage() {
           <p className="text-gray-500">No se encontraron empresas.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Empresa</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Contacto</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">País</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Fecha</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredCompanies.map((company) => (
-                  <tr key={company.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {company.company_name || 'Sin nombre'}
-                        </p>
-                        {company.tax_id && (
-                          <p className="text-xs text-gray-500">CUIT: {company.tax_id}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-gray-900">{company.profile?.full_name}</p>
-                      <p className="text-xs text-gray-500">{company.profile?.email}</p>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {company.country === 'AR' ? 'Argentina' : company.country === 'BR' ? 'Brasil' : company.country}
-                    </td>
-                    <td className="px-4 py-3">
-                      <CompanyStatusBadge status={company.status} />
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">
-                      {formatDate(company.created_at)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex gap-1 justify-end">
-                        {company.status === 'pending_review' && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="primary"
-                              onClick={() =>
-                                openModal(
-                                  company.id,
-                                  'verified',
-                                  'Verificar empresa',
-                                  `Vas a verificar a "${company.company_name}". La empresa podrá publicar trabajos.`,
-                                  'Verificar'
-                                )
-                              }
-                            >
-                              Verificar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              onClick={() =>
-                                openModal(
-                                  company.id,
-                                  'rejected',
-                                  'Rechazar empresa',
-                                  `Vas a rechazar a "${company.company_name}".`,
-                                  'Rechazar',
-                                  'danger',
-                                  true
-                                )
-                              }
-                            >
-                              Rechazar
-                            </Button>
-                          </>
-                        )}
-                        {company.status === 'verified' && (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() =>
-                              openModal(
-                                company.id,
-                                'suspended',
-                                'Suspender empresa',
-                                `Vas a suspender a "${company.company_name}". No podrá operar.`,
-                                'Suspender',
-                                'danger',
-                                true
-                              )
-                            }
-                          >
-                            Suspender
-                          </Button>
-                        )}
-                        {company.status === 'suspended' && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() =>
-                              openModal(
-                                company.id,
-                                'verified',
-                                'Reactivar empresa',
-                                `Vas a reactivar a "${company.company_name}".`,
-                                'Reactivar'
-                              )
-                            }
-                          >
-                            Reactivar
-                          </Button>
-                        )}
-                        {company.status === 'rejected' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              openModal(
-                                company.id,
-                                'pending_review',
-                                'Reenviar a revisión',
-                                `La empresa "${company.company_name}" volverá a pendiente de revisión.`,
-                                'Reenviar'
-                              )
-                            }
-                          >
-                            Reenviar
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="space-y-3">
+          {filteredCompanies.map((company) => (
+            <CompanyCard
+              key={company.id}
+              company={company}
+              isExpanded={expandedId === company.id}
+              onToggleExpand={() =>
+                setExpandedId(expandedId === company.id ? null : company.id)
+              }
+              onAction={openModal}
+            />
+          ))}
         </div>
       )}
 
@@ -295,6 +172,279 @@ export default function AdminEmpresasPage() {
           requireReason={modal.requireReason}
         />
       )}
+    </div>
+  )
+}
+
+function CompanyCard({
+  company,
+  isExpanded,
+  onToggleExpand,
+  onAction,
+}: {
+  company: CompanyWithProfile
+  isExpanded: boolean
+  onToggleExpand: () => void
+  onAction: (
+    companyId: string,
+    action: CompanyStatus,
+    title: string,
+    description: string,
+    confirmLabel: string,
+    confirmVariant?: 'primary' | 'danger',
+    requireReason?: boolean
+  ) => void
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Header */}
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar
+              src={company.logo_url}
+              fallback={company.company_name || 'E'}
+              size="lg"
+            />
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-900">
+                {company.company_name || 'Sin nombre'}
+              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
+                <span>{company.profile?.full_name}</span>
+                <span className="text-gray-300">|</span>
+                <span>{company.profile?.email}</span>
+              </div>
+              {company.tax_id && (
+                <p className="text-xs text-gray-400 mt-0.5">CUIT: {company.tax_id}</p>
+              )}
+            </div>
+          </div>
+          <CompanyStatusBadge status={company.status} />
+        </div>
+
+        {/* Info compacta + acciones */}
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+            <span className="flex items-center gap-1">
+              <MapPin size={14} />
+              {company.country === 'AR' ? 'Argentina' : company.country === 'BR' ? 'Brasil' : company.country}
+              {company.city && `, ${company.city}`}
+            </span>
+            <span className="flex items-center gap-1">
+              <Calendar size={14} />
+              {formatDate(company.created_at)}
+            </span>
+          </div>
+
+          <button
+            onClick={onToggleExpand}
+            className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp size={16} />
+                Ocultar
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} />
+                Ver detalle
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Detalle expandido */}
+      {isExpanded && (
+        <div className="border-t border-gray-200 bg-gray-50 p-5 space-y-4">
+          {/* Datos de la empresa */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Datos de la empresa
+              </h4>
+              <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2">
+                <DetailRow label="Razón social" value={company.company_name} />
+                <DetailRow label="CUIT / CNPJ" value={company.tax_id} />
+                <DetailRow
+                  label="Sitio web"
+                  value={
+                    company.website ? (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:underline flex items-center gap-1"
+                      >
+                        <Globe size={12} />
+                        {company.website}
+                      </a>
+                    ) : null
+                  }
+                />
+                <DetailRow
+                  label="Dirección"
+                  value={[company.address, company.city, company.country === 'AR' ? 'Argentina' : company.country]
+                    .filter(Boolean)
+                    .join(', ')}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Contacto
+              </h4>
+              <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2">
+                <DetailRow label="Nombre" value={company.profile?.full_name} />
+                <DetailRow
+                  label="Email"
+                  value={
+                    company.profile?.email ? (
+                      <span className="flex items-center gap-1">
+                        <Mail size={12} className="text-gray-400" />
+                        {company.profile.email}
+                      </span>
+                    ) : null
+                  }
+                />
+                <DetailRow
+                  label="Teléfono"
+                  value={
+                    company.profile?.phone ? (
+                      <span className="flex items-center gap-1">
+                        <Phone size={12} className="text-gray-400" />
+                        {company.profile.phone}
+                      </span>
+                    ) : null
+                  }
+                />
+                <DetailRow label="Registrado" value={formatDate(company.created_at)} />
+                {company.verified_at && (
+                  <DetailRow label="Verificado" value={formatDate(company.verified_at)} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Descripción */}
+          {company.description && (
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Descripción
+              </h4>
+              <div className="bg-white rounded-lg p-4 border border-gray-100">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{company.description}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Acciones */}
+          <div className="flex gap-2 pt-2 border-t border-gray-200">
+            {company.status === 'pending_review' && (
+              <>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() =>
+                    onAction(
+                      company.id,
+                      'verified',
+                      'Verificar empresa',
+                      `Vas a verificar a "${company.company_name}". La empresa podrá publicar trabajos.`,
+                      'Verificar'
+                    )
+                  }
+                >
+                  Verificar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() =>
+                    onAction(
+                      company.id,
+                      'rejected',
+                      'Rechazar empresa',
+                      `Vas a rechazar a "${company.company_name}".`,
+                      'Rechazar',
+                      'danger',
+                      true
+                    )
+                  }
+                >
+                  Rechazar
+                </Button>
+              </>
+            )}
+            {company.status === 'verified' && (
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() =>
+                  onAction(
+                    company.id,
+                    'suspended',
+                    'Suspender empresa',
+                    `Vas a suspender a "${company.company_name}". No podrá operar.`,
+                    'Suspender',
+                    'danger',
+                    true
+                  )
+                }
+              >
+                Suspender
+              </Button>
+            )}
+            {company.status === 'suspended' && (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() =>
+                  onAction(
+                    company.id,
+                    'verified',
+                    'Reactivar empresa',
+                    `Vas a reactivar a "${company.company_name}".`,
+                    'Reactivar'
+                  )
+                }
+              >
+                Reactivar
+              </Button>
+            )}
+            {company.status === 'rejected' && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  onAction(
+                    company.id,
+                    'pending_review',
+                    'Reenviar a revisión',
+                    `La empresa "${company.company_name}" volverá a pendiente de revisión.`,
+                    'Reenviar'
+                  )
+                }
+              >
+                Reenviar a revisión
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (!value) return null
+  return (
+    <div className="flex items-start gap-2 text-sm">
+      <span className="text-gray-500 shrink-0 w-24">{label}:</span>
+      <span className="text-gray-900">{value}</span>
     </div>
   )
 }

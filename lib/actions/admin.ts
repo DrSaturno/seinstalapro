@@ -162,12 +162,12 @@ export async function updateCompanyStatus(
 // --- Listar instaladores con perfil ---
 export async function getAdminInstallers(
   status?: string
-): Promise<Array<Installer & { profile?: Profile }>> {
+): Promise<Array<Installer & { profile?: Profile; skills?: Array<{ id: string; skill_name: string }> }>> {
   const supabase = createClient()
 
   let query = supabase
     .from('installers')
-    .select('*, profile:profiles(*)')
+    .select('*, profile:profiles(*), skills:installer_skills(id, skill_name)')
     .order('created_at', { ascending: false })
 
   if (status && status !== 'all') {
