@@ -169,9 +169,9 @@ BEGIN
         v_category_id,
         v_location_id,
         CASE
-          WHEN i = 1 THEN 'published'
-          WHEN i = 2 THEN 'receiving_offers'
-          ELSE 'published'
+          WHEN i = 1 THEN 'published'::job_status
+          WHEN i = 2 THEN 'receiving_offers'::job_status
+          ELSE 'published'::job_status
         END,
         v_jobs_data[v_job_count][4]::NUMERIC,
         v_jobs_data[v_job_count][5]::NUMERIC,
@@ -233,8 +233,8 @@ BEGIN
         v_job.id,
         v_installer.id,
         CASE
-          WHEN v_offer_count = 1 AND random() > 0.5 THEN 'shortlisted'
-          ELSE 'sent'
+          WHEN v_offer_count = 1 AND random() > 0.5 THEN 'shortlisted'::offer_status
+          ELSE 'sent'::offer_status
         END,
         COALESCE(v_job.budget_min, 50000) + floor(random() * COALESCE(v_job.budget_max - v_job.budget_min, 50000)),
         v_job.currency,
@@ -252,7 +252,7 @@ BEGIN
 
     -- Si tiene ofertas, cambiar a receiving_offers
     IF v_offer_count > 0 THEN
-      UPDATE jobs SET status = 'receiving_offers' WHERE id = v_job.id AND status = 'published';
+      UPDATE jobs SET status = 'receiving_offers'::job_status WHERE id = v_job.id AND status = 'published'::job_status;
     END IF;
   END LOOP;
 END $$;
@@ -310,7 +310,7 @@ BEGIN
       v_completed_jobs[v_counter][1],
       v_completed_jobs[v_counter][2],
       v_category_id, v_location_id,
-      'rated',
+      'rated'::job_status,
       v_completed_jobs[v_counter][4]::NUMERIC,
       (v_completed_jobs[v_counter][4]::NUMERIC * 1.3)::NUMERIC,
       'ARS',
@@ -328,7 +328,7 @@ BEGIN
       team_size, estimated_duration_value,
       message, submitted_at, accepted_at
     ) VALUES (
-      v_job_id, v_installer.id, 'accepted',
+      v_job_id, v_installer.id, 'accepted'::offer_status,
       v_completed_jobs[v_counter][4]::NUMERIC,
       'ARS', 2, 5,
       'Me encantaría realizar este trabajo. Tengo experiencia en proyectos similares.',
@@ -345,7 +345,7 @@ BEGIN
       created_at
     ) VALUES (
       v_job_id, v_offer_id, v_company.id, v_installer.id,
-      'completed',
+      'completed'::agreement_status,
       v_completed_jobs[v_counter][4]::NUMERIC,
       'ARS',
       (NOW() - INTERVAL '50 days')::DATE,
@@ -428,7 +428,7 @@ BEGIN
       v_in_progress_jobs[v_counter][1],
       v_in_progress_jobs[v_counter][2],
       v_category_id, v_location_id,
-      'in_progress',
+      'in_progress'::job_status,
       v_in_progress_jobs[v_counter][4]::NUMERIC,
       (v_in_progress_jobs[v_counter][4]::NUMERIC * 1.2)::NUMERIC,
       'ARS',
@@ -445,7 +445,7 @@ BEGIN
       team_size, estimated_duration_value,
       message, submitted_at, accepted_at
     ) VALUES (
-      v_job_id, v_installer.id, 'accepted',
+      v_job_id, v_installer.id, 'accepted'::offer_status,
       v_in_progress_jobs[v_counter][4]::NUMERIC,
       'ARS', 2, 7,
       'Estoy listo para arrancar con este proyecto. Cuento con la experiencia necesaria.',
@@ -461,7 +461,7 @@ BEGIN
       created_at
     ) VALUES (
       v_job_id, v_offer_id, v_company.id, v_installer.id,
-      'in_progress',
+      'in_progress'::agreement_status,
       v_in_progress_jobs[v_counter][4]::NUMERIC,
       'ARS',
       NOW()::DATE,
