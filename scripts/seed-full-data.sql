@@ -1,7 +1,62 @@
 -- ============================================================
 -- SE INSTALA PRO - SEED COMPLETO CON DATOS FICTICIOS
 -- Ejecutar en Supabase SQL Editor
+-- IDEMPOTENTE: se puede ejecutar múltiples veces sin romper
 -- ============================================================
+
+-- ============================================================
+-- PASO 0: Limpiar datos de seed anteriores (si los hay)
+-- Borra solo datos creados por test users, NO datos reales
+-- ============================================================
+
+-- Borrar mensajes de acuerdos de test
+DELETE FROM messages WHERE agreement_id IN (
+  SELECT a.id FROM agreements a
+  JOIN companies c ON c.id = a.company_id
+  JOIN profiles p ON p.id = c.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
+-- Borrar reseñas de jobs de test
+DELETE FROM reviews WHERE job_id IN (
+  SELECT j.id FROM jobs j
+  JOIN companies c ON c.id = j.company_id
+  JOIN profiles p ON p.id = c.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
+-- Borrar acuerdos de test
+DELETE FROM agreements WHERE company_id IN (
+  SELECT c.id FROM companies c
+  JOIN profiles p ON p.id = c.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
+-- Borrar ofertas de jobs de test
+DELETE FROM offers WHERE job_id IN (
+  SELECT j.id FROM jobs j
+  JOIN companies c ON c.id = j.company_id
+  JOIN profiles p ON p.id = c.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
+-- Borrar jobs de test
+DELETE FROM jobs WHERE company_id IN (
+  SELECT c.id FROM companies c
+  JOIN profiles p ON p.id = c.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
+-- Borrar skills de instaladores test
+DELETE FROM installer_skills WHERE installer_id IN (
+  SELECT i.id FROM installers i
+  JOIN profiles p ON p.id = i.profile_id
+  WHERE p.email LIKE '%@test.com'
+);
+
+-- Resetear ratings de instaladores test
+UPDATE installers SET avg_rating = 0, total_reviews = 0
+WHERE profile_id IN (SELECT id FROM profiles WHERE email LIKE '%@test.com');
 
 -- ============================================================
 -- PASO 1: Verificar empresas y aprobar instaladores
