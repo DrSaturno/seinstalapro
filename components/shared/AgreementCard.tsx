@@ -24,6 +24,8 @@ interface AgreementCardProps {
   viewAs: 'company' | 'installer'
   onAction?: (agreementId: string, action: AgreementStatus) => void
   onApprove?: (agreementId: string) => void
+  onComplete?: (agreementId: string) => void
+  onViewEvidence?: (agreementId: string) => void
   onReview?: (agreementId: string) => void
   onDispute?: (agreementId: string) => void
   isActioning?: boolean
@@ -34,6 +36,8 @@ export function AgreementCard({
   viewAs,
   onAction,
   onApprove,
+  onComplete,
+  onViewEvidence,
   onReview,
   onDispute,
   isActioning,
@@ -245,7 +249,7 @@ export function AgreementCard({
                   disabled={isActioning}
                   className="font-bold text-xs rounded-xl"
                 >
-                  Aprobar trabajo
+                  Aprobar entrega
                 </Button>
               )}
               {['active', 'coordinating', 'confirmed'].includes(agreement.status) && onAction && (
@@ -276,18 +280,31 @@ export function AgreementCard({
                   Iniciar trabajo
                 </Button>
               )}
-              {agreement.status === 'in_progress' && onAction && (
+              {agreement.status === 'in_progress' && onComplete && (
                 <Button
                   size="sm"
                   variant="primary"
-                  onClick={() => onAction(agreement.id, 'completed')}
+                  onClick={() => onComplete(agreement.id)}
                   disabled={isActioning}
                   className="font-bold text-xs rounded-xl"
                 >
-                  Marcar completado
+                  Entregar con evidencia
                 </Button>
               )}
             </>
+          )}
+
+          {/* Evidencia de entrega (ambos roles, cuando el trabajo fue entregado) */}
+          {onViewEvidence && agreement.status === 'completed' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onViewEvidence(agreement.id)}
+              disabled={isActioning}
+              className="font-bold text-xs rounded-xl"
+            >
+              Ver evidencia
+            </Button>
           )}
 
           {/* Reseña (ambos roles, solo si aprobado) */}

@@ -22,7 +22,7 @@ export type JobStatus =
   | 'disputed'
 export type AgreementStatus = 'active' | 'coordinating' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'disputed'
 export type DisputeStatus = 'new' | 'under_review' | 'waiting_company' | 'waiting_installer' | 'resolved' | 'closed'
-export type FileType = 'image' | 'document' | 'other'
+export type FileType = 'image' | 'document' | 'evidence' | 'other'
 export type TeamMembershipStatus = 'active' | 'removed'
 export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked'
 
@@ -159,6 +159,8 @@ export interface JobFile {
   file_size?: number
   storage_path?: string
   order_index?: number
+  uploaded_by?: string
+  agreement_id?: string
   created_at: string
 }
 

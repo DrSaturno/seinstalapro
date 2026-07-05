@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notifications'
+import { canTransitionAgreement } from '@/lib/utils/agreement-flow'
 import type { ActionResult, AgreementFull } from '@/lib/actions/types'
 import type { AgreementStatus } from '@/types/database'
 
@@ -77,6 +78,8 @@ export async function updateAgreementStatus(
     data: { user },
   } = await supabase.auth.getUser()
 
+  if (!user) return { success: false, error: 'No autenticado' }
+
   const { data: agreement } = await supabase
     .from('agreements')
     .select('id, status, job_id, company:companies(profile_id), installer:installers(profile_id), job:jobs(title)')
@@ -85,16 +88,21 @@ export async function updateAgreementStatus(
 
   if (!agreement) return { success: false, error: 'Acuerdo no encontrado' }
 
-  // Validar transiciones permitidas
-  const VALID: Record<string, string[]> = {
-    active: ['coordinating', 'cancelled'],
-    coordinating: ['confirmed', 'cancelled'],
-    confirmed: ['in_progress', 'cancelled'],
-    in_progress: ['completed', 'disputed'],
+  // El que llama tiene que ser parte del acuerdo, y su rol determina
+  // qué transiciones puede hacer (ver lib/utils/agreement-flow.ts)
+  const companyProfile = (agreement as any).company?.profile_id
+  const installerProfile = (agreement as any).installer?.profile_id
+
+  let callerRole: 'company' | 'installer'
+  if (user.id === companyProfile) {
+    callerRole = 'company'
+  } else if (user.id === installerProfile) {
+    callerRole = 'installer'
+  } else {
+    return { success: false, error: 'No sos parte de este acuerdo' }
   }
 
-  const allowed = VALID[agreement.status] || []
-  if (!allowed.includes(newStatus)) {
+  if (!canTransitionAgreement(callerRole, agreement.status as AgreementStatus, newStatus)) {
     return {
       success: false,
       error: `No se puede pasar de "${agreement.status}" a "${newStatus}"`,
@@ -171,6 +179,27 @@ export async function confirmAgreementDates(
   endDate?: string
 ): Promise<ActionResult> {
   const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'No autenticado' }
+
+  // Solo las partes del acuerdo pueden fijar fechas, y solo mientras
+  // el trabajo no haya terminado
+  const { data: agreement } = await supabase
+    .from('agreements')
+    .select('id, status, company:companies(profile_id), installer:installers(profile_id)')
+    .eq('id', agreementId)
+    .single()
+
+  if (!agreement) return { success: false, error: 'Acuerdo no encontrado' }
+
+  const isParty =
+    (agreement as any).company?.profile_id === user.id ||
+    (agreement as any).installer?.profile_id === user.id
+  if (!isParty) return { success: false, error: 'No sos parte de este acuerdo' }
+
+  if (!['active', 'coordinating', 'confirmed'].includes(agreement.status)) {
+    return { success: false, error: 'Las fechas ya no se pueden modificar en este estado' }
+  }
 
   const { error } = await supabase
     .from('agreements')
@@ -193,14 +222,22 @@ export async function approveCompletedJob(
   agreementId: string
 ): Promise<ActionResult> {
   const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'No autenticado' }
 
   const { data: agreement } = await supabase
     .from('agreements')
-    .select('id, status, job_id, installer:installers(profile_id), job:jobs(title)')
+    .select('id, status, job_id, company:companies(profile_id), installer:installers(profile_id), job:jobs(title)')
     .eq('id', agreementId)
     .single()
 
   if (!agreement) return { success: false, error: 'Acuerdo no encontrado' }
+
+  // Solo la empresa del acuerdo puede aprobar la entrega
+  if ((agreement as any).company?.profile_id !== user.id) {
+    return { success: false, error: 'Solo la empresa puede aprobar la entrega' }
+  }
+
   if (agreement.status !== 'completed') {
     return { success: false, error: 'El acuerdo debe estar completado para aprobarlo' }
   }

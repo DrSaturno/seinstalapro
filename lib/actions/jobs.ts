@@ -7,7 +7,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createJobSchema, type CreateJobInput } from '@/lib/validations/job'
-import { notifyAdmins } from './notifications'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from '@/lib/actions/types'
 import type { Job, JobWithCompany, Category, Location } from '@/types/database'
@@ -185,66 +184,9 @@ export async function getJobDetail(
   return data as JobWithCompany | null
 }
 
-// --- Enviar trabajo a revisión (draft → pending_admin_approval) ---
-export async function submitJobForReview(
-  jobId: string
-): Promise<ActionResult> {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { success: false, error: 'No autenticado' }
-  }
-
-  // Verificar que el trabajo pertenece al usuario
-  const { data: company } = await supabase
-    .from('companies')
-    .select('id')
-    .eq('profile_id', user.id)
-    .single()
-
-  if (!company) {
-    return { success: false, error: 'Empresa no encontrada' }
-  }
-
-  const { data: job } = await supabase
-    .from('jobs')
-    .select('id, status, title')
-    .eq('id', jobId)
-    .eq('company_id', company.id)
-    .single()
-
-  if (!job) {
-    return { success: false, error: 'Trabajo no encontrado' }
-  }
-
-  if (job.status !== 'draft') {
-    return { success: false, error: 'Solo se pueden enviar borradores a revisión' }
-  }
-
-  const { error } = await supabase
-    .from('jobs')
-    .update({ status: 'pending_admin_approval' })
-    .eq('id', jobId)
-
-  if (error) {
-    return { success: false, error: 'Error al enviar a revisión' }
-  }
-
-  // Avisar a los admins que hay un trabajo esperando moderación
-  await notifyAdmins({
-    type: 'system',
-    title: 'Nuevo trabajo para moderar',
-    message: `"${job.title}" está pendiente de aprobación.`,
-    relatedEntityType: 'job',
-    relatedEntityId: jobId,
-  })
-
-  revalidatePath('/empresa/trabajos')
-  revalidatePath(`/empresa/trabajos/${jobId}`)
-
-  return { success: true, message: 'Trabajo enviado a revisión.' }
-}
+// NOTA: publicar/asignar trabajos vive en lib/actions/assignments.ts
+// (publishJobToTeam notifica al equipo; createAssignment asigna directo).
+// En el modelo SaaS no hay moderación previa del admin.
 
 // --- Actualizar trabajo (solo borradores) ---
 export async function updateJob(

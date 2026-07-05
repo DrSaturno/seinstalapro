@@ -22,7 +22,7 @@ CREATE TYPE public.job_status AS ENUM (
 );
 CREATE TYPE public.agreement_status AS ENUM ('active', 'coordinating', 'confirmed', 'in_progress', 'completed', 'cancelled', 'disputed');
 CREATE TYPE public.dispute_status AS ENUM ('new', 'under_review', 'waiting_company', 'waiting_installer', 'resolved', 'closed');
-CREATE TYPE public.file_type AS ENUM ('image', 'document', 'other');
+CREATE TYPE public.file_type AS ENUM ('image', 'document', 'evidence', 'other');
 CREATE TYPE public.team_membership_status AS ENUM ('active', 'removed');
 CREATE TYPE public.invitation_status AS ENUM ('pending', 'accepted', 'expired', 'revoked');
 
@@ -177,6 +177,9 @@ CREATE TABLE public.job_files (
   file_size INTEGER,
   storage_path TEXT,
   order_index INTEGER,
+  uploaded_by UUID REFERENCES public.profiles(id),
+  -- agreement_id: FK agregada después de crear agreements (ver más abajo)
+  agreement_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -232,6 +235,11 @@ CREATE TABLE public.agreements (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- FK diferida: job_files.agreement_id (job_files se crea antes que agreements)
+ALTER TABLE public.job_files
+  ADD CONSTRAINT job_files_agreement_id_fkey
+  FOREIGN KEY (agreement_id) REFERENCES public.agreements(id) ON DELETE CASCADE;
 
 -- ============================================================
 -- MESSAGES TABLE

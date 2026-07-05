@@ -15,6 +15,7 @@ import {
 } from '@/lib/actions/agreements'
 import { createDispute } from '@/lib/actions/disputes'
 import { DisputeModal } from '@/components/shared/DisputeModal'
+import { EvidenceGallery } from '@/components/shared/EvidenceGallery'
 import type { AgreementFull } from '@/lib/actions/types'
 import type { AgreementStatus } from '@/types/database'
 import { toast } from 'sonner'
@@ -38,6 +39,10 @@ export default function EmpresaAcuerdosPage() {
     agreementId: string
   } | null>(null)
   const [disputeModal, setDisputeModal] = useState<{
+    isOpen: boolean
+    agreementId: string
+  } | null>(null)
+  const [evidenceModal, setEvidenceModal] = useState<{
     isOpen: boolean
     agreementId: string
   } | null>(null)
@@ -147,7 +152,7 @@ export default function EmpresaAcuerdosPage() {
             description={
               filter !== 'all'
                 ? 'No hay acuerdos con este filtro.'
-                : 'Cuando aceptes una oferta de un instalador, el acuerdo aparecerá acá.'
+                : 'Cuando asignes un trabajo a un instalador de tu equipo, el acuerdo aparecerá acá.'
             }
           />
         </div>
@@ -160,6 +165,9 @@ export default function EmpresaAcuerdosPage() {
               viewAs="company"
               onAction={handleAction}
               onApprove={handleApprove}
+              onViewEvidence={(id) =>
+                setEvidenceModal({ isOpen: true, agreementId: id })
+              }
               onReview={(id) =>
                 setReviewModal({ isOpen: true, agreementId: id })
               }
@@ -189,6 +197,15 @@ export default function EmpresaAcuerdosPage() {
           onClose={() => setDisputeModal(null)}
           onSubmit={handleDispute}
           mode="create"
+        />
+      )}
+
+      {/* Galería de evidencia */}
+      {evidenceModal && (
+        <EvidenceGallery
+          agreementId={evidenceModal.agreementId}
+          isOpen={evidenceModal.isOpen}
+          onClose={() => setEvidenceModal(null)}
         />
       )}
     </div>

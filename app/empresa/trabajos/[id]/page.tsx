@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft,
-  Send,
   XCircle,
   Pencil,
   Calendar,
@@ -28,7 +27,6 @@ import { ImageUploader } from '@/components/empresa/ImageUploader'
 import { AssignInstallerCard } from '@/components/empresa/AssignInstallerCard'
 import {
   getJobDetail,
-  submitJobForReview,
   cancelJob,
   uploadJobFiles,
 } from '@/lib/actions/jobs'
@@ -66,25 +64,6 @@ export default function JobDetailPage() {
     }
     if (jobId) loadJob()
   }, [jobId])
-
-  const handleSubmitForReview = async () => {
-    setActionLoading(true)
-    setError(null)
-    try {
-      const result = await submitJobForReview(jobId)
-      if (result.success) {
-        setSuccess(result.message || 'Enviado a revision')
-        const updated = await getJobDetail(jobId)
-        setJob(updated)
-      } else {
-        setError(result.error || 'Error')
-      }
-    } catch (err) {
-      setError('Error inesperado')
-    } finally {
-      setActionLoading(false)
-    }
-  }
 
   const handleCancel = async () => {
     if (!confirm('Estas seguro de cancelar este trabajo?')) return
@@ -189,24 +168,14 @@ export default function JobDetailPage() {
 
         <div className="flex items-center gap-2">
           {isDraft && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/empresa/trabajos/${jobId}/editar`)}
-              >
-                <Pencil className="h-4 w-4 mr-1" />
-                Editar
-              </Button>
-              <Button
-                onClick={handleSubmitForReview}
-                isLoading={actionLoading}
-                size="sm"
-              >
-                <Send className="h-4 w-4 mr-1" />
-                Enviar a revision
-              </Button>
-            </>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/empresa/trabajos/${jobId}/editar`)}
+            >
+              <Pencil className="h-4 w-4 mr-1" />
+              Editar
+            </Button>
           )}
           {canCancel && (
             <Button

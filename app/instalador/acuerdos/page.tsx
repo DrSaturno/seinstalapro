@@ -12,8 +12,11 @@ import {
   updateAgreementStatus,
   createReview,
 } from '@/lib/actions/agreements'
+import { completeJobWithEvidence } from '@/lib/actions/evidence'
 import { createDispute } from '@/lib/actions/disputes'
 import { DisputeModal } from '@/components/shared/DisputeModal'
+import { CompleteJobModal } from '@/components/instalador/CompleteJobModal'
+import { EvidenceGallery } from '@/components/shared/EvidenceGallery'
 import type { AgreementFull } from '@/lib/actions/types'
 import type { AgreementStatus } from '@/types/database'
 import { toast } from 'sonner'
@@ -37,6 +40,14 @@ export default function InstaladorAcuerdosPage() {
     agreementId: string
   } | null>(null)
   const [disputeModal, setDisputeModal] = useState<{
+    isOpen: boolean
+    agreementId: string
+  } | null>(null)
+  const [completeModal, setCompleteModal] = useState<{
+    isOpen: boolean
+    agreementId: string
+  } | null>(null)
+  const [evidenceModal, setEvidenceModal] = useState<{
     isOpen: boolean
     agreementId: string
   } | null>(null)
@@ -99,6 +110,18 @@ export default function InstaladorAcuerdosPage() {
     }
   }
 
+  const handleComplete = async (formData: FormData) => {
+    if (!completeModal) return
+    const res = await completeJobWithEvidence(completeModal.agreementId, formData)
+    if (res.success) {
+      toast.success(res.message)
+      loadAgreements()
+    } else {
+      toast.error(res.error)
+      throw new Error(res.error) // mantiene el modal abierto para reintentar
+    }
+  }
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <PageHeader
@@ -134,7 +157,7 @@ export default function InstaladorAcuerdosPage() {
             description={
               filter !== 'all'
                 ? 'No hay acuerdos con este filtro.'
-                : 'Cuando una empresa acepte tu oferta, el acuerdo aparecerá acá.'
+                : 'Cuando una empresa te asigne un trabajo, el acuerdo aparecerá acá.'
             }
           />
         </div>
@@ -146,6 +169,12 @@ export default function InstaladorAcuerdosPage() {
               agreement={agreement}
               viewAs="installer"
               onAction={handleAction}
+              onComplete={(id) =>
+                setCompleteModal({ isOpen: true, agreementId: id })
+              }
+              onViewEvidence={(id) =>
+                setEvidenceModal({ isOpen: true, agreementId: id })
+              }
               onReview={(id) =>
                 setReviewModal({ isOpen: true, agreementId: id })
               }
@@ -175,6 +204,24 @@ export default function InstaladorAcuerdosPage() {
           onClose={() => setDisputeModal(null)}
           onSubmit={handleDispute}
           mode="create"
+        />
+      )}
+
+      {/* Modal de entrega con evidencia */}
+      {completeModal && (
+        <CompleteJobModal
+          isOpen={completeModal.isOpen}
+          onClose={() => setCompleteModal(null)}
+          onSubmit={handleComplete}
+        />
+      )}
+
+      {/* Galería de evidencia */}
+      {evidenceModal && (
+        <EvidenceGallery
+          agreementId={evidenceModal.agreementId}
+          isOpen={evidenceModal.isOpen}
+          onClose={() => setEvidenceModal(null)}
         />
       )}
     </div>
