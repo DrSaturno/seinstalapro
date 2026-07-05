@@ -56,3 +56,14 @@ export type DisputeFull = Dispute & {
 export type AssignableInstaller = Installer & {
   profile?: Profile
 }
+
+// --- Equipo al que pertenece un instalador ---
+export interface MyTeam {
+  membershipId: string
+  companyId: string
+  companyName: string
+  logoUrl?: string
+  city?: string
+  country: string
+  joinedAt: string
+}

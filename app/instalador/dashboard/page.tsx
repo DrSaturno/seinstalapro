@@ -14,6 +14,9 @@ import { StatsCard } from '@/components/ui/StatsCard'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/providers/AuthProvider'
 import { getInstallerStats } from '@/lib/actions/installer'
+import { getMyTeams } from '@/lib/actions/team'
+import { MyTeamsList } from '@/components/instalador/MyTeamsList'
+import type { MyTeam } from '@/lib/actions/types'
 import Link from 'next/link'
 
 export default function InstaladorDashboardPage() {
@@ -25,13 +28,18 @@ export default function InstaladorDashboardPage() {
     avgRating: number
     totalReviews: number
   } | null>(null)
+  const [teams, setTeams] = useState<MyTeam[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await getInstallerStats()
-        setStats(data)
+        const [statsData, teamsData] = await Promise.all([
+          getInstallerStats(),
+          getMyTeams(),
+        ])
+        setStats(statsData)
+        setTeams(teamsData)
       } catch (err) {
         console.error(err)
       } finally {
@@ -91,6 +99,9 @@ export default function InstaladorDashboardPage() {
         </div>
       )}
 
+      {/* Mis equipos */}
+      {!isLoading && <MyTeamsList teams={teams} />}
+
       {/* Acciones rápidas */}
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Acciones rápidas
@@ -147,8 +158,8 @@ export default function InstaladorDashboardPage() {
           Completá tu perfil
         </h3>
         <p className="text-sm text-primary-700 mb-3">
-          Un perfil completo con habilidades y portfolio te da más chances de que
-          las empresas acepten tus ofertas.
+          Un perfil completo con habilidades y portfolio ayuda a que las empresas
+          de tus equipos te asignen los trabajos indicados.
         </p>
         <Link href="/instalador/perfil">
           <Button size="sm" variant="primary">

@@ -16,7 +16,7 @@ import {
   type AcceptInvitationInput,
 } from '@/lib/validations/auth'
 import { createNotification } from '@/lib/actions/notifications'
-import type { ActionResult } from '@/lib/actions/types'
+import type { ActionResult, MyTeam } from '@/lib/actions/types'
 import type {
   Invitation,
   TeamMembership,
@@ -271,6 +271,43 @@ export async function removeTeamMember(installerId: string): Promise<ActionResul
 
   revalidatePath('/empresa/equipo')
   return { success: true, message: 'Instalador quitado del equipo' }
+}
+
+// ------------------------------------------------------------
+// Instalador: mis equipos (empresas con membresía activa)
+// ------------------------------------------------------------
+
+export async function getMyTeams(): Promise<MyTeam[]> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: installer } = await supabase
+    .from('installers')
+    .select('id')
+    .eq('profile_id', user.id)
+    .single()
+
+  if (!installer) return []
+
+  const { data } = await supabase
+    .from('team_memberships')
+    .select('id, joined_at, company:companies(id, company_name, logo_url, city, country)')
+    .eq('installer_id', installer.id)
+    .eq('status', 'active')
+    .order('joined_at', { ascending: false })
+
+  return (data || [])
+    .filter((row: any) => row.company)
+    .map((row: any) => ({
+      membershipId: row.id,
+      companyId: row.company.id,
+      companyName: row.company.company_name,
+      logoUrl: row.company.logo_url || undefined,
+      city: row.company.city || undefined,
+      country: row.company.country,
+      joinedAt: row.joined_at,
+    }))
 }
 
 // ------------------------------------------------------------
