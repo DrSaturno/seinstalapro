@@ -18,6 +18,7 @@ import {
   ClipboardList,
   FileCheck2,
   UserCircle,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react'
 import type { UserRole } from '@/types/database'
@@ -52,6 +53,7 @@ const empresaNav: NavSection[] = [
     title: 'Gestión',
     items: [
       { label: 'Mi equipo', href: '/empresa/equipo', icon: Users },
+      { label: 'Agenda', href: '/empresa/agenda', icon: CalendarDays },
       { label: 'Acuerdos', href: '/empresa/acuerdos', icon: FileCheck2 },
       { label: 'Mensajes', href: '/empresa/mensajes', icon: MessageSquare },
     ],

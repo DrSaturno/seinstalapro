@@ -1,7 +1,8 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/providers/AuthProvider'
+import { PwaRegister } from '@/components/shared/PwaRegister'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] })
@@ -16,6 +17,21 @@ export const metadata: Metadata = {
     description: 'Software de gestión de instalaciones gráficas para empresas del sector',
     type: 'website',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Se Instala Pro',
+  },
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#2e75b6',
 }
 
 export default function RootLayout({
@@ -25,10 +41,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
       <body className={jakarta.className}>
+        <PwaRegister />
         <AuthProvider>
           {children}
           <Toaster

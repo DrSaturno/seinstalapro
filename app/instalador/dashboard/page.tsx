@@ -15,7 +15,9 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/providers/AuthProvider'
 import { getInstallerStats } from '@/lib/actions/installer'
 import { getMyTeams } from '@/lib/actions/team'
+import { getUpcomingInstallations, type UpcomingInstallation } from '@/lib/actions/weather'
 import { MyTeamsList } from '@/components/instalador/MyTeamsList'
+import { UpcomingInstalls } from '@/components/instalador/UpcomingInstalls'
 import type { MyTeam } from '@/lib/actions/types'
 import Link from 'next/link'
 
@@ -29,17 +31,20 @@ export default function InstaladorDashboardPage() {
     totalReviews: number
   } | null>(null)
   const [teams, setTeams] = useState<MyTeam[]>([])
+  const [upcoming, setUpcoming] = useState<UpcomingInstallation[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       try {
-        const [statsData, teamsData] = await Promise.all([
+        const [statsData, teamsData, upcomingData] = await Promise.all([
           getInstallerStats(),
           getMyTeams(),
+          getUpcomingInstallations(),
         ])
         setStats(statsData)
         setTeams(teamsData)
+        setUpcoming(upcomingData)
       } catch (err) {
         console.error(err)
       } finally {
@@ -98,6 +103,9 @@ export default function InstaladorDashboardPage() {
           />
         </div>
       )}
+
+      {/* Próximas instalaciones con clima */}
+      {!isLoading && <UpcomingInstalls installations={upcoming} />}
 
       {/* Mis equipos */}
       {!isLoading && <MyTeamsList teams={teams} />}
