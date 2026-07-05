@@ -6,9 +6,11 @@
 describe('Notification Logic', () => {
   // Tipos de notificación válidos
   const VALID_TYPES = [
-    'offer_received',
-    'offer_accepted',
-    'offer_rejected',
+    'invitation_received',
+    'team_joined',
+    'job_assigned',
+    'job_claimed',
+    'job_published',
     'agreement_update',
     'dispute_opened',
     'dispute_resolved',
@@ -22,11 +24,11 @@ describe('Notification Logic', () => {
     VALID_TYPES.forEach((type) => {
       expect(VALID_TYPES).toContain(type)
     })
-    expect(VALID_TYPES.length).toBe(10)
+    expect(VALID_TYPES.length).toBe(12)
   })
 
   test('notification requires user_id and title', () => {
-    const valid = { user_id: 'uuid-1', title: 'Nueva oferta', notification_type: 'offer_received' }
+    const valid = { user_id: 'uuid-1', title: 'Trabajo asignado', notification_type: 'job_assigned' }
     expect(valid.user_id).toBeTruthy()
     expect(valid.title).toBeTruthy()
     expect(valid.notification_type).toBeTruthy()

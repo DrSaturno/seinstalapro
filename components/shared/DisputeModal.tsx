@@ -49,13 +49,13 @@ export function DisputeModal({ isOpen, onClose, onSubmit, mode }: DisputeModalPr
         <div className="flex items-center gap-2 mb-1">
           <AlertTriangle size={20} className={isCreate ? 'text-orange-500' : 'text-green-500'} />
           <h3 className="text-lg font-semibold text-gray-900">
-            {isCreate ? 'Abrir disputa' : 'Resolver disputa'}
+            {isCreate ? 'Reportar un problema' : 'Resolver reporte'}
           </h3>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           {isCreate
-            ? 'Describí el problema para que un administrador lo revise.'
-            : 'Ingresá la resolución de la disputa.'}
+            ? 'Describí el problema para que el equipo de soporte lo revise.'
+            : 'Ingresá la resolución del reporte.'}
         </p>
 
         {/* Campo título o resolución */}
@@ -112,7 +112,7 @@ export function DisputeModal({ isOpen, onClose, onSubmit, mode }: DisputeModalPr
                 : title.trim().length < 10
             }
           >
-            {isCreate ? 'Abrir disputa' : 'Resolver'}
+            {isCreate ? 'Enviar reporte' : 'Resolver'}
           </Button>
         </div>
       </div>

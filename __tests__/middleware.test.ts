@@ -7,7 +7,7 @@
 // En un futuro se pueden convertir a integration tests
 
 describe('Middleware - Route Protection Logic', () => {
-  const PUBLIC_ROUTES = ['/', '/login', '/signup', '/forgot-password', '/auth/callback', '/auth/confirm']
+  const PUBLIC_ROUTES = ['/', '/login', '/forgot-password', '/auth/callback', '/auth/confirm']
 
   const ROLE_ROUTES: Record<string, string> = {
     company: '/empresa',
@@ -33,12 +33,18 @@ describe('Middleware - Route Protection Logic', () => {
       expect(isPublic).toBe(true)
     })
 
-    it('permite acceso a signup sin autenticación', () => {
+    it('NO permite acceso a signup (eliminado en el pivot a SaaS)', () => {
       const pathname = '/signup'
       const isPublic = PUBLIC_ROUTES.some(
         route => pathname === route || pathname.startsWith('/auth/')
       )
-      expect(isPublic).toBe(true)
+      expect(isPublic).toBe(false)
+    })
+
+    it('permite acceso a invitaciones sin autenticación (gated por token)', () => {
+      const pathname = '/invitaciones/un-token-cualquiera'
+      const isInvitation = pathname.startsWith('/invitaciones')
+      expect(isInvitation).toBe(true)
     })
 
     it('permite acceso a forgot-password sin autenticación', () => {

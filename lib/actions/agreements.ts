@@ -8,16 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notifications'
 import type { ActionResult, AgreementFull } from '@/lib/actions/types'
-import type {
-  Agreement,
-  Job,
-  Company,
-  Installer,
-  Offer,
-  Profile,
-  Category,
-  AgreementStatus,
-} from '@/types/database'
+import type { AgreementStatus } from '@/types/database'
 
 // --- Obtener acuerdos de la empresa ---
 export async function getCompanyAgreements(): Promise<AgreementFull[]> {
@@ -39,7 +30,7 @@ export async function getCompanyAgreements(): Promise<AgreementFull[]> {
   const { data } = await supabase
     .from('agreements')
     .select(
-      '*, job:jobs(id, title, status, category:categories(name)), installer:installers(*, profile:profiles(full_name, email, phone, avatar_url)), offer:offers(proposed_price, currency, team_size)'
+      '*, job:jobs(id, title, status, category:categories(name)), installer:installers(*, profile:profiles(full_name, email, phone, avatar_url))'
     )
     .eq('company_id', company.id)
     .order('created_at', { ascending: false })
@@ -67,7 +58,7 @@ export async function getInstallerAgreements(): Promise<AgreementFull[]> {
   const { data } = await supabase
     .from('agreements')
     .select(
-      '*, job:jobs(id, title, status, category:categories(name)), company:companies(company_name, profile:profiles(full_name, email, phone)), offer:offers(proposed_price, currency, team_size)'
+      '*, job:jobs(id, title, status, category:categories(name)), company:companies(company_name, profile:profiles(full_name, email, phone))'
     )
     .eq('installer_id', installer.id)
     .order('created_at', { ascending: false })

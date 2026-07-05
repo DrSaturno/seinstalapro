@@ -13,9 +13,11 @@ import { useAuth } from '@/providers/AuthProvider'
 import type { Notification } from '@/types/database'
 
 const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string; bgColor: string }> = {
-  offer_received: { icon: ClipboardList, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  offer_accepted: { icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-50' },
-  offer_rejected: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50' },
+  invitation_received: { icon: ClipboardList, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  team_joined: { icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-50' },
+  job_assigned: { icon: ClipboardList, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  job_claimed: { icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-50' },
+  job_published: { icon: ClipboardList, color: 'text-blue-600', bgColor: 'bg-blue-50' },
   agreement_update: { icon: FileCheck2, color: 'text-purple-600', bgColor: 'bg-purple-50' },
   dispute_opened: { icon: AlertTriangle, color: 'text-orange-600', bgColor: 'bg-orange-50' },
   dispute_resolved: { icon: Check, color: 'text-green-600', bgColor: 'bg-green-50' },
@@ -50,9 +52,10 @@ export function NotificationDropdown() {
         case 'job':
           if (role === 'admin') return '/admin/trabajos'
           if (role === 'company') return `/empresa/trabajos/${notif.related_entity_id}`
-          return `/instalador/trabajos/${notif.related_entity_id}`
-        case 'offer':
-          return role === 'company' ? '/empresa/ofertas' : '/instalador/ofertas'
+          return '/instalador/mis-trabajos'
+        case 'invitation':
+        case 'team_membership':
+          return role === 'company' ? '/empresa/equipo' : '/instalador/dashboard'
         case 'agreement':
           if (role === 'admin') return '/admin/disputas'
           if (notif.notification_type === 'message_received') {

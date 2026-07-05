@@ -28,15 +28,16 @@ export async function getCompanyProfile(): Promise<Company | null> {
 // --- Obtener estadisticas de la empresa ---
 export async function getCompanyStats(): Promise<{
   totalJobs: number
-  publishedJobs: number
-  pendingOffers: number
+  openJobs: number
+  teamSize: number
   activeAgreements: number
   completedJobs: number
 }> {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) return { totalJobs: 0, publishedJobs: 0, pendingOffers: 0, activeAgreements: 0, completedJobs: 0 }
+  const empty = { totalJobs: 0, openJobs: 0, teamSize: 0, activeAgreements: 0, completedJobs: 0 }
+  if (!user) return empty
 
   const { data: company } = await supabase
     .from('companies')
@@ -44,34 +45,29 @@ export async function getCompanyStats(): Promise<{
     .eq('profile_id', user.id)
     .single()
 
-  if (!company) return { totalJobs: 0, publishedJobs: 0, pendingOffers: 0, activeAgreements: 0, completedJobs: 0 }
+  if (!company) return empty
 
   // Obtener jobs
   const { data: jobs } = await supabase
     .from('jobs')
-    .select('id, status, offers_count')
+    .select('id, status')
     .eq('company_id', company.id)
 
   const allJobs = jobs || []
   const totalJobs = allJobs.length
-  const publishedJobs = allJobs.filter(j =>
-    ['published', 'receiving_offers', 'offer_accepted', 'in_progress'].includes(j.status)
+  const openJobs = allJobs.filter(j =>
+    ['published', 'assigned', 'in_progress'].includes(j.status)
   ).length
   const completedJobs = allJobs.filter(j =>
     ['approved', 'rated', 'completed_by_installer', 'under_company_review'].includes(j.status)
   ).length
 
-  // Ofertas pendientes (sent) para los jobs de la empresa
-  const jobIds = allJobs.map(j => j.id)
-  let pendingOffers = 0
-  if (jobIds.length > 0) {
-    const { count } = await supabase
-      .from('offers')
-      .select('id', { count: 'exact', head: true })
-      .in('job_id', jobIds)
-      .eq('status', 'sent')
-    pendingOffers = count || 0
-  }
+  // Tamaño del equipo (miembros activos)
+  const { count: teamSize } = await supabase
+    .from('team_memberships')
+    .select('id', { count: 'exact', head: true })
+    .eq('company_id', company.id)
+    .eq('status', 'active')
 
   // Acuerdos activos
   const { count: activeAgreements } = await supabase
@@ -82,8 +78,8 @@ export async function getCompanyStats(): Promise<{
 
   return {
     totalJobs,
-    publishedJobs,
-    pendingOffers,
+    openJobs,
+    teamSize: teamSize || 0,
     activeAgreements: activeAgreements || 0,
     completedJobs,
   }

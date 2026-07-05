@@ -10,8 +10,7 @@ export type JobStatus =
   | 'draft'
   | 'pending_admin_approval'
   | 'published'
-  | 'receiving_offers'
-  | 'offer_accepted'
+  | 'assigned'
   | 'coordinating'
   | 'confirmed'
   | 'in_progress'
@@ -21,10 +20,11 @@ export type JobStatus =
   | 'rated'
   | 'cancelled'
   | 'disputed'
-export type OfferStatus = 'sent' | 'withdrawn' | 'shortlisted' | 'accepted' | 'rejected' | 'expired'
 export type AgreementStatus = 'active' | 'coordinating' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'disputed'
 export type DisputeStatus = 'new' | 'under_review' | 'waiting_company' | 'waiting_installer' | 'resolved' | 'closed'
 export type FileType = 'image' | 'document' | 'other'
+export type TeamMembershipStatus = 'active' | 'removed'
+export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked'
 
 // ============================================================
 // TABLES
@@ -56,6 +56,7 @@ export interface Company {
   city?: string
   address?: string
   verified_at?: string
+  created_by_superadmin_id?: string
   created_at: string
   updated_at: string
 }
@@ -141,7 +142,7 @@ export interface Job {
   start_date?: string
   end_date?: string
   files_count: number
-  offers_count: number
+  claimed_by_installer_id?: string
   admin_approved_at?: string
   admin_rejection_reason?: string
   published_at?: string
@@ -161,31 +162,33 @@ export interface JobFile {
   created_at: string
 }
 
-export interface Offer {
+export interface TeamMembership {
   id: string
-  job_id: string
+  company_id: string
   installer_id: string
-  status: OfferStatus
-  proposed_price: number
-  currency: string
-  availability_start_date?: string
-  availability_end_date?: string
-  estimated_duration?: string
-  estimated_duration_value?: number
-  team_size: number
-  message?: string
-  submitted_at: string
-  reviewed_at?: string
-  accepted_at?: string
-  rejected_at?: string
+  status: TeamMembershipStatus
+  joined_at?: string
+  removed_at?: string
   created_at: string
   updated_at: string
+}
+
+export interface Invitation {
+  id: string
+  company_id: string
+  email: string
+  token: string
+  status: InvitationStatus
+  invited_by: string
+  installer_id?: string
+  expires_at: string
+  accepted_at?: string
+  created_at: string
 }
 
 export interface Agreement {
   id: string
   job_id: string
-  offer_id: string
   company_id: string
   installer_id: string
   status: AgreementStatus
@@ -274,14 +277,13 @@ export interface JobWithCompany extends Job {
   files?: JobFile[]
 }
 
-export interface OfferWithInstaller extends Offer {
+export interface TeamMembershipWithInstaller extends TeamMembership {
   installer?: Installer
-  job?: Job
+  profile?: Profile
 }
 
 export interface AgreementWithDetails extends Agreement {
   job?: Job
   company?: Company
   installer?: Installer
-  offer?: Offer
 }

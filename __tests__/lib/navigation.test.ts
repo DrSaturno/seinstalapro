@@ -51,11 +51,20 @@ describe('getNavigation', () => {
     expect(publicar?.href).toBe('/empresa/trabajos/nuevo')
   })
 
-  it('instalador tiene buscar trabajos', () => {
+  it('instalador tiene mis trabajos', () => {
     const nav = getNavigation('installer')
     const allItems = nav.flatMap((s) => s.items)
-    const buscar = allItems.find((i) => i.label === 'Buscar trabajos')
-    expect(buscar).toBeDefined()
+    const misTrabajos = allItems.find((i) => i.label === 'Mis trabajos')
+    expect(misTrabajos).toBeDefined()
+    expect(misTrabajos?.href).toBe('/instalador/mis-trabajos')
+  })
+
+  it('empresa tiene mi equipo', () => {
+    const nav = getNavigation('company')
+    const allItems = nav.flatMap((s) => s.items)
+    const equipo = allItems.find((i) => i.label === 'Mi equipo')
+    expect(equipo).toBeDefined()
+    expect(equipo?.href).toBe('/empresa/equipo')
   })
 
   it('admin tiene sección de moderación', () => {

@@ -6,7 +6,7 @@ import {
   FileCheck2,
   Star,
   Briefcase,
-  Search,
+  Users,
   ArrowRight,
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -19,8 +19,7 @@ import Link from 'next/link'
 export default function InstaladorDashboardPage() {
   const { profile } = useAuth()
   const [stats, setStats] = useState<{
-    activeOffers: number
-    acceptedOffers: number
+    teamsCount: number
     activeAgreements: number
     completedJobs: number
     avgRating: number
@@ -62,11 +61,11 @@ export default function InstaladorDashboardPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
-            title="Ofertas activas"
-            value={stats?.activeOffers || 0}
-            icon={ClipboardList}
+            title="Equipos"
+            value={stats?.teamsCount || 0}
+            icon={Users}
             color="primary"
-            description="Enviadas y pendientes"
+            description="Empresas donde trabajás"
           />
           <StatsCard
             title="Acuerdos en curso"
@@ -97,18 +96,18 @@ export default function InstaladorDashboardPage() {
         Acciones rápidas
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-        <Link href="/instalador/trabajos">
+        <Link href="/instalador/mis-trabajos">
           <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100/50 group-hover:bg-primary-50 group-hover:border-primary-100/50 text-slate-400 group-hover:text-primary-600 transition-all duration-200 shrink-0">
-                <Search size={20} className="transition-colors" />
+                <ClipboardList size={20} className="transition-colors" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-slate-800 group-hover:text-primary-600 transition-colors truncate">
-                  Buscar trabajos
+                  Mis trabajos
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 truncate">
-                  Explorá trabajos disponibles y enviá ofertas
+                  Trabajos asignados y disponibles de tus equipos
                 </p>
               </div>
               <ArrowRight
@@ -118,19 +117,19 @@ export default function InstaladorDashboardPage() {
             </div>
           </div>
         </Link>
- 
-        <Link href="/instalador/ofertas">
+
+        <Link href="/instalador/acuerdos">
           <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100/50 group-hover:bg-primary-50 group-hover:border-primary-100/50 text-slate-400 group-hover:text-primary-600 transition-all duration-200 shrink-0">
-                <ClipboardList size={20} className="transition-colors" />
+                <FileCheck2 size={20} className="transition-colors" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-slate-800 group-hover:text-primary-600 transition-colors truncate">
-                  Mis ofertas
+                  Mis acuerdos
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 truncate">
-                  Seguí el estado de tus ofertas enviadas
+                  Seguí el estado de tus trabajos en curso
                 </p>
               </div>
               <ArrowRight

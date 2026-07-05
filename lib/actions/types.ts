@@ -11,7 +11,6 @@ import type {
   Job,
   Company,
   Installer,
-  Offer,
   Profile,
   Category,
   Dispute,
@@ -41,7 +40,6 @@ export type AgreementFull = Agreement & {
   job?: Job & { category?: Category }
   company?: Company & { profile?: Profile }
   installer?: Installer & { profile?: Profile }
-  offer?: Offer
 }
 
 // --- Disputa completa con relaciones ---
@@ -54,8 +52,7 @@ export type DisputeFull = Dispute & {
   }
 }
 
-// --- Oferta con datos del instalador (vista Empresa) ---
-export type OfferWithInstaller = Offer & {
-  installer?: Installer & { profile?: Profile }
-  job?: Job & { category?: Category }
+// --- Instalador asignable (miembro activo del equipo) ---
+export type AssignableInstaller = Installer & {
+  profile?: Profile
 }

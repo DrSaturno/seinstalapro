@@ -58,6 +58,28 @@ LANGUAGE SQL STABLE SECURITY DEFINER AS $$
   );
 $$;
 
+-- Is the current installer an active member of this company's team?
+CREATE OR REPLACE FUNCTION public.is_team_member(target_company_id UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL STABLE SECURITY DEFINER AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.team_memberships tm
+    JOIN public.installers i ON i.id = tm.installer_id
+    WHERE tm.company_id = target_company_id
+      AND i.profile_id = auth.uid()
+      AND tm.status = 'active'
+  );
+$$;
+
+-- All company_ids the current installer is actively on the team of
+CREATE OR REPLACE FUNCTION public.my_team_company_ids()
+RETURNS SETOF UUID
+LANGUAGE SQL STABLE SECURITY DEFINER AS $$
+  SELECT tm.company_id FROM public.team_memberships tm
+  JOIN public.installers i ON i.id = tm.installer_id
+  WHERE i.profile_id = auth.uid() AND tm.status = 'active';
+$$;
+
 -- ============================================================
 -- ENABLE RLS ON ALL TABLES
 -- ============================================================
@@ -70,7 +92,8 @@ ALTER TABLE public.installers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.installer_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_files ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.team_memberships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.agreements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
@@ -99,17 +122,17 @@ WITH CHECK (id = auth.uid());
 -- COMPANIES POLICIES
 -- ============================================================
 
-CREATE POLICY "companies_select_own_or_admin_or_verified"
+CREATE POLICY "companies_select_own_admin_or_team"
 ON public.companies FOR SELECT
 USING (
   profile_id = auth.uid()
   OR public.is_admin()
-  OR status = 'verified'
+  OR public.is_team_member(id)
 );
 
-CREATE POLICY "companies_insert_own"
+CREATE POLICY "companies_insert_superadmin_only"
 ON public.companies FOR INSERT
-WITH CHECK (profile_id = auth.uid());
+WITH CHECK (public.is_superadmin());
 
 CREATE POLICY "companies_update_own_or_admin"
 ON public.companies FOR UPDATE
@@ -148,12 +171,17 @@ USING (public.is_admin());
 -- INSTALLERS POLICIES
 -- ============================================================
 
-CREATE POLICY "installers_select_own_admin_or_approved"
+CREATE POLICY "installers_select_own_admin_or_team"
 ON public.installers FOR SELECT
 USING (
   profile_id = auth.uid()
   OR public.is_admin()
-  OR status = 'approved'
+  OR EXISTS (
+    SELECT 1 FROM public.team_memberships tm
+    WHERE tm.installer_id = installers.id
+      AND tm.company_id = public.my_company_id()
+      AND tm.status = 'active'
+  )
 );
 
 CREATE POLICY "installers_insert_own"
@@ -173,7 +201,7 @@ USING (public.is_admin());
 -- INSTALLER SKILLS POLICIES
 -- ============================================================
 
-CREATE POLICY "installer_skills_select_own_admin_or_approved"
+CREATE POLICY "installer_skills_select_own_admin_or_team"
 ON public.installer_skills FOR SELECT
 USING (
   EXISTS (
@@ -181,7 +209,12 @@ USING (
     WHERE id = installer_id AND (
       profile_id = auth.uid()
       OR public.is_admin()
-      OR status = 'approved'
+      OR EXISTS (
+        SELECT 1 FROM public.team_memberships tm
+        WHERE tm.installer_id = installers.id
+          AND tm.company_id = public.my_company_id()
+          AND tm.status = 'active'
+      )
     )
   )
 );
@@ -214,18 +247,66 @@ USING (
 );
 
 -- ============================================================
+-- TEAM MEMBERSHIPS POLICIES
+-- ============================================================
+
+CREATE POLICY "team_memberships_select_own_or_admin"
+ON public.team_memberships FOR SELECT
+USING (
+  company_id = public.my_company_id()
+  OR installer_id = public.my_installer_id()
+  OR public.is_admin()
+);
+
+CREATE POLICY "team_memberships_insert_company_or_admin"
+ON public.team_memberships FOR INSERT
+WITH CHECK (
+  company_id = public.my_company_id()
+  OR public.is_admin()
+);
+
+CREATE POLICY "team_memberships_update_company_or_admin"
+ON public.team_memberships FOR UPDATE
+USING (company_id = public.my_company_id() OR public.is_admin())
+WITH CHECK (company_id = public.my_company_id() OR public.is_admin());
+
+-- ============================================================
+-- INVITATIONS POLICIES
+-- ============================================================
+
+CREATE POLICY "invitations_select_own_company_or_admin"
+ON public.invitations FOR SELECT
+USING (
+  company_id = public.my_company_id()
+  OR public.is_admin()
+);
+
+CREATE POLICY "invitations_insert_own_company_or_admin"
+ON public.invitations FOR INSERT
+WITH CHECK (
+  company_id = public.my_company_id()
+  OR public.is_admin()
+);
+
+CREATE POLICY "invitations_update_own_company_or_admin"
+ON public.invitations FOR UPDATE
+USING (company_id = public.my_company_id() OR public.is_admin())
+WITH CHECK (company_id = public.my_company_id() OR public.is_admin());
+
+-- ============================================================
 -- JOBS POLICIES
 -- ============================================================
 
-CREATE POLICY "jobs_select_company_admin_or_published"
+CREATE POLICY "jobs_select_company_admin_assigned_or_team_open"
 ON public.jobs FOR SELECT
 USING (
   company_id = public.my_company_id()
   OR public.is_admin()
-  OR (status = 'published' AND EXISTS (
-    SELECT 1 FROM public.installers
-    WHERE profile_id = auth.uid() AND status = 'approved'
-  ))
+  OR EXISTS (
+    SELECT 1 FROM public.agreements
+    WHERE agreements.job_id = jobs.id AND agreements.installer_id = public.my_installer_id()
+  )
+  OR (status = 'published' AND public.is_team_member(company_id))
 );
 
 CREATE POLICY "jobs_insert_company"
@@ -251,7 +332,7 @@ USING (company_id = public.my_company_id() OR public.is_admin());
 -- JOB FILES POLICIES
 -- ============================================================
 
-CREATE POLICY "job_files_select_company_admin_or_published"
+CREATE POLICY "job_files_select_company_admin_assigned_or_team_open"
 ON public.job_files FOR SELECT
 USING (
   EXISTS (
@@ -259,7 +340,11 @@ USING (
     WHERE id = job_id AND (
       company_id = public.my_company_id()
       OR public.is_admin()
-      OR status = 'published'
+      OR EXISTS (
+        SELECT 1 FROM public.agreements
+        WHERE agreements.job_id = jobs.id AND agreements.installer_id = public.my_installer_id()
+      )
+      OR (jobs.status = 'published' AND public.is_team_member(jobs.company_id))
     )
   )
 );
@@ -289,44 +374,8 @@ USING (
 );
 
 -- ============================================================
--- OFFERS POLICIES
--- ============================================================
-
-CREATE POLICY "offers_select_own_company_admin"
-ON public.offers FOR SELECT
-USING (
-  installer_id = public.my_installer_id()
-  OR EXISTS (
-    SELECT 1 FROM public.jobs
-    WHERE id = job_id AND company_id = public.my_company_id()
-  )
-  OR public.is_admin()
-);
-
-CREATE POLICY "offers_insert_approved_installer"
-ON public.offers FOR INSERT
-WITH CHECK (
-  installer_id = public.my_installer_id()
-  AND public.my_installer_is_approved()
-  AND EXISTS (
-    SELECT 1 FROM public.jobs
-    WHERE id = job_id AND status IN ('published', 'receiving_offers')
-  )
-);
-
-CREATE POLICY "offers_update_own_or_admin"
-ON public.offers FOR UPDATE
-USING (
-  installer_id = public.my_installer_id()
-  OR public.is_admin()
-)
-WITH CHECK (
-  installer_id = public.my_installer_id()
-  OR public.is_admin()
-);
-
--- ============================================================
--- AGREEMENTS POLICIES
+-- AGREEMENTS POLICIES (created directly by company assignment or
+-- installer claim -- there is no bidding/offer step anymore)
 -- ============================================================
 
 CREATE POLICY "agreements_select_own_or_admin"
@@ -337,9 +386,13 @@ USING (
   OR public.is_admin()
 );
 
-CREATE POLICY "agreements_insert_admin_only"
+CREATE POLICY "agreements_insert_company_or_claiming_installer"
 ON public.agreements FOR INSERT
-WITH CHECK (public.is_admin());
+WITH CHECK (
+  company_id = public.my_company_id()
+  OR (installer_id = public.my_installer_id() AND public.is_team_member(company_id))
+  OR public.is_admin()
+);
 
 CREATE POLICY "agreements_update_own_or_admin"
 ON public.agreements FOR UPDATE
@@ -374,9 +427,14 @@ WITH CHECK (sender_id = auth.uid());
 -- REVIEWS POLICIES
 -- ============================================================
 
-CREATE POLICY "reviews_select_all"
+CREATE POLICY "reviews_select_parties_admin_or_team"
 ON public.reviews FOR SELECT
-USING (true);
+USING (
+  reviewer_id = auth.uid()
+  OR reviewed_id = auth.uid()
+  OR public.is_admin()
+  OR public.is_team_member((SELECT company_id FROM public.agreements WHERE id = reviews.agreement_id))
+);
 
 CREATE POLICY "reviews_insert_own"
 ON public.reviews FOR INSERT

@@ -5,15 +5,12 @@
 // ============================================================
 
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import {
   loginSchema,
-  signupSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   type LoginInput,
-  type SignupInput,
   type ForgotPasswordInput,
   type ResetPasswordInput,
 } from '@/lib/validations/auth'
@@ -81,104 +78,9 @@ export async function login(data: LoginInput): Promise<ActionResult> {
   redirect(dashboardUrl)
 }
 
-// --- SIGNUP ---
-export async function signup(data: SignupInput): Promise<ActionResult> {
-  const validation = signupSchema.safeParse(data)
-  if (!validation.success) {
-    return {
-      success: false,
-      error: validation.error.issues[0].message,
-    }
-  }
-
-  const { full_name, email, password, role, country_code } = validation.data
-
-  const supabase = createClient()
-
-  // Registrar en Supabase Auth con metadata
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name,
-        role,
-        country_code,
-      },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
-    },
-  })
-
-  if (authError) {
-    if (authError.message.includes('already registered')) {
-      return { success: false, error: 'Este email ya está registrado. Intentá iniciar sesión.' }
-    }
-    if (authError.message.includes('rate limit') || authError.message.includes('too many')) {
-      return { success: false, error: 'Demasiados intentos. Esperá unos minutos.' }
-    }
-    return { success: false, error: `Error al crear la cuenta: ${authError.message}` }
-  }
-
-  if (!authData.user) {
-    return { success: false, error: 'Error al crear la cuenta: no se recibió usuario.' }
-  }
-
-  // Detectar email ya registrado (Supabase no devuelve error, devuelve user sin identities)
-  if (authData.user.identities && authData.user.identities.length === 0) {
-    return { success: false, error: 'Este email ya está registrado. Intentá iniciar sesión.' }
-  }
-
-  // Crear perfil usando admin client (bypasa RLS)
-  const adminClient = createAdminClient()
-
-  const { error: profileError } = await adminClient
-    .from('profiles')
-    .insert({
-      id: authData.user.id,
-      role,
-      full_name,
-      email,
-      country_code,
-      status: 'active',
-    })
-
-  if (profileError) {
-    // Profile creation failed — user was created in auth but profile insert failed
-  }
-
-  // Crear registro de empresa o instalador según el rol
-  if (role === 'company') {
-    const { error: companyError } = await adminClient
-      .from('companies')
-      .insert({
-        profile_id: authData.user.id,
-        company_name: full_name, // Temporal, se actualiza después
-        country: country_code,
-        status: 'pending_review',
-      })
-
-    if (companyError) {
-      // Company record creation failed
-    }
-  } else if (role === 'installer') {
-    const { error: installerError } = await adminClient
-      .from('installers')
-      .insert({
-        profile_id: authData.user.id,
-        country: country_code,
-        status: 'draft',
-      })
-
-    if (installerError) {
-      // Installer record creation failed
-    }
-  }
-
-  return {
-    success: true,
-    message: 'Cuenta creada. Revisá tu email para confirmar tu cuenta.',
-  }
-}
+// NOTA: el signup público fue eliminado en el pivot a SaaS B2B.
+// Las cuentas de empresa las crea el superadmin (lib/actions/superadmin.ts)
+// y los instaladores solo entran aceptando una invitación (lib/actions/team.ts).
 
 // --- LOGOUT ---
 export async function logout(): Promise<void> {

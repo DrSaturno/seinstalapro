@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Building2, Search, Globe, MapPin, FileText, Mail, Phone, Calendar, ChevronDown, ChevronUp } from 'lucide-react'
+import { Building2, Search, Globe, MapPin, FileText, Mail, Phone, Calendar, ChevronDown, ChevronUp, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { CompanyStatusBadge } from '@/components/admin/CompanyStatusBadge'
 import { StatusActionModal } from '@/components/admin/StatusActionModal'
+import { CreateCompanyModal } from '@/components/admin/CreateCompanyModal'
 import { getAdminCompanies, updateCompanyStatus } from '@/lib/actions/admin'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -28,6 +29,7 @@ export default function AdminEmpresasPage() {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [modal, setModal] = useState<{
     isOpen: boolean
     companyId: string
@@ -101,7 +103,13 @@ export default function AdminEmpresasPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <PageHeader
         title="Gestión de Empresas"
-        description="Revisá y moderá las empresas registradas"
+        description="Creá y gestioná las cuentas de empresas cliente"
+        actions={
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Crear empresa
+          </Button>
+        }
       />
 
       {/* Filtros */}
@@ -158,6 +166,16 @@ export default function AdminEmpresasPage() {
           ))}
         </div>
       )}
+
+      {/* Modal crear empresa */}
+      <CreateCompanyModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={() => {
+          toast.success('Empresa creada correctamente')
+          loadCompanies()
+        }}
+      />
 
       {/* Modal */}
       {modal && (

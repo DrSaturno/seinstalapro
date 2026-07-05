@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { JobStatusBadge } from '@/components/empresa/JobStatusBadge'
 import { ImageUploader } from '@/components/empresa/ImageUploader'
+import { AssignInstallerCard } from '@/components/empresa/AssignInstallerCard'
 import {
   getJobDetail,
   submitJobForReview,
@@ -137,7 +138,8 @@ export default function JobDetailPage() {
   }
 
   const isDraft = job.status === 'draft'
-  const canCancel = ['draft', 'pending_admin_approval', 'published', 'receiving_offers'].includes(job.status)
+  const canAssign = ['draft', 'pending_admin_approval', 'published'].includes(job.status)
+  const canCancel = ['draft', 'pending_admin_approval', 'published'].includes(job.status)
   const details = (job.details || {}) as JobDetails
   const urgency = details.urgency ? URGENCY_CONFIG[details.urgency] : null
 
@@ -359,25 +361,16 @@ export default function JobDetailPage() {
             />
           </div>
 
-          {/* Ofertas recibidas */}
-          {job.offers_count > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Ofertas recibidas ({job.offers_count})
-                </h2>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => router.push('/empresa/ofertas')}
-                >
-                  Ver todas
-                </Button>
-              </div>
-              <p className="text-sm text-gray-500">
-                Gestioná las ofertas de los instaladores desde la seccion de ofertas.
-              </p>
-            </div>
+          {/* Asignar instalador */}
+          {canAssign && (
+            <AssignInstallerCard
+              jobId={jobId}
+              jobStatus={job.status}
+              onChanged={async () => {
+                const updated = await getJobDetail(jobId)
+                setJob(updated)
+              }}
+            />
           )}
         </div>
 
@@ -469,24 +462,6 @@ export default function JobDetailPage() {
             </dl>
           </div>
 
-          {/* Info de ofertas */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-900 mb-2">Ofertas</h3>
-            <p className="text-3xl font-bold text-primary-500">
-              {job.offers_count}
-            </p>
-            <p className="text-xs text-gray-500 mb-3">ofertas recibidas</p>
-            {job.offers_count > 0 && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={() => router.push('/empresa/ofertas')}
-              >
-                Ver ofertas
-              </Button>
-            )}
-          </div>
         </div>
       </div>
     </div>

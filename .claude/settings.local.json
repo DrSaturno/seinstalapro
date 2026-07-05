@@ -31,7 +31,12 @@
       "mcp__fe897d58-885d-40cf-8a44-e94e7a1aab84__get_deployment_build_logs",
       "WebFetch(domain:seinstalapro.vercel.app)",
       "PowerShell(git -C \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documentos\\\\Planeta Saturno\\\\Claude\\\\seinstalapro\" status)",
-      "PowerShell(git -C \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documentos\\\\Planeta Saturno\\\\Claude\\\\seinstalapro\" diff --stat)"
+      "PowerShell(git -C \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documentos\\\\Planeta Saturno\\\\Claude\\\\seinstalapro\" diff --stat)",
+      "mcp__abf20ac6-35f3-4b64-8feb-fcd015f3e7b4__list_projects",
+      "Bash(grep -o 'NEXT_PUBLIC_SUPABASE_URL=.*' .env.local)",
+      "Bash(grep -o 'NEXT_PUBLIC_SUPABASE_URL=.*' .env)",
+      "Bash(rm -rf \"app/\\(auth\\)/signup\" components/auth/SignupForm.tsx)",
+      "Bash(mkdir -p \"app/\\(auth\\)/invitaciones/[token]\")"
     ]
   }
 }

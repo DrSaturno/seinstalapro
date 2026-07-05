@@ -18,18 +18,53 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 
-// --- Signup ---
-export const signupSchema = z
+// --- Crear empresa (solo superadmin, reemplaza al signup público) ---
+export const createCompanySchema = z.object({
+  company_name: z
+    .string()
+    .min(1, 'El nombre de la empresa es obligatorio')
+    .min(2, 'El nombre debe tener al menos 2 caracteres')
+    .max(100, 'El nombre no puede exceder 100 caracteres'),
+  full_name: z
+    .string()
+    .min(1, 'El nombre del responsable es obligatorio')
+    .min(2, 'El nombre debe tener al menos 2 caracteres')
+    .max(100, 'El nombre no puede exceder 100 caracteres'),
+  email: z
+    .string()
+    .min(1, 'El email es obligatorio')
+    .email('Ingresá un email válido'),
+  password: z
+    .string()
+    .min(1, 'La contraseña es obligatoria')
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .max(72, 'La contraseña no puede exceder 72 caracteres'),
+  country_code: z
+    .string()
+    .min(1, 'Seleccioná el país')
+    .default('AR'),
+})
+
+export type CreateCompanyInput = z.infer<typeof createCompanySchema>
+
+// --- Invitar instalador (empresa) ---
+export const inviteInstallerSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'El email es obligatorio')
+    .email('Ingresá un email válido'),
+})
+
+export type InviteInstallerInput = z.infer<typeof inviteInstallerSchema>
+
+// --- Aceptar invitación (instalador nuevo, mini-signup con token) ---
+export const acceptInvitationSchema = z
   .object({
     full_name: z
       .string()
       .min(1, 'El nombre es obligatorio')
       .min(2, 'El nombre debe tener al menos 2 caracteres')
       .max(100, 'El nombre no puede exceder 100 caracteres'),
-    email: z
-      .string()
-      .min(1, 'El email es obligatorio')
-      .email('Ingresá un email válido'),
     password: z
       .string()
       .min(1, 'La contraseña es obligatoria')
@@ -38,10 +73,6 @@ export const signupSchema = z
     confirmPassword: z
       .string()
       .min(1, 'Confirmá tu contraseña'),
-    role: z.enum(['company', 'installer'], {
-      required_error: 'Seleccioná tu tipo de cuenta',
-      invalid_type_error: 'Tipo de cuenta inválido',
-    }),
     country_code: z
       .string()
       .min(1, 'Seleccioná tu país')
@@ -52,7 +83,7 @@ export const signupSchema = z
     path: ['confirmPassword'],
   })
 
-export type SignupInput = z.infer<typeof signupSchema>
+export type AcceptInvitationInput = z.infer<typeof acceptInvitationSchema>
 
 // --- Forgot Password ---
 export const forgotPasswordSchema = z.object({

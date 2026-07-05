@@ -23,8 +23,8 @@ export default function EmpresaDashboardPage() {
   const router = useRouter()
   const [stats, setStats] = useState<{
     totalJobs: number
-    publishedJobs: number
-    pendingOffers: number
+    openJobs: number
+    teamSize: number
     activeAgreements: number
     completedJobs: number
   } | null>(null)
@@ -70,18 +70,18 @@ export default function EmpresaDashboardPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
-            title="Trabajos publicados"
-            value={stats?.publishedJobs || 0}
+            title="Trabajos activos"
+            value={stats?.openJobs || 0}
             icon={Briefcase}
             color="primary"
             description={`${stats?.totalJobs || 0} total`}
           />
           <StatsCard
-            title="Ofertas pendientes"
-            value={stats?.pendingOffers || 0}
+            title="Mi equipo"
+            value={stats?.teamSize || 0}
             icon={ClipboardList}
             color="accent"
-            description="Esperando tu revision"
+            description="Instaladores activos"
           />
           <StatsCard
             title="Acuerdos activos"

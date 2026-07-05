@@ -117,14 +117,6 @@ export function JobCard({ job, basePath = '/empresa/trabajos' }: JobCardProps) {
           </span>
         )}
 
-        {/* Ofertas */}
-        {job.offers_count > 0 && (
-          <span className="flex items-center gap-1 text-primary-600 font-medium">
-            <ClipboardList className="h-3.5 w-3.5" />
-            {job.offers_count} oferta{job.offers_count !== 1 ? 's' : ''}
-          </span>
-        )}
-
         {/* Fecha */}
         {job.start_date && (
           <span className="flex items-center gap-1">

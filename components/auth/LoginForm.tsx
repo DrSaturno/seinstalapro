@@ -136,13 +136,13 @@ export function LoginForm() {
       </Button>
 
       <p className="text-center text-sm text-gray-600">
-        ¿No tenés cuenta?{' '}
-        <Link
-          href="/signup"
+        ¿Querés usar Se Instala Pro en tu empresa?{' '}
+        <a
+          href="mailto:nicolas.galarza87@gmail.com"
           className="text-primary-500 font-medium hover:text-primary-600 hover:underline"
         >
-          Registrate gratis
-        </Link>
+          Contactanos
+        </a>
       </p>
     </form>
   )

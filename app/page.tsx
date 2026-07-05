@@ -3,8 +3,6 @@ import { Logo } from '@/components/ui/Logo'
 import {
   Building2,
   Wrench,
-  Shield,
-  Star,
   ArrowRight,
   CheckCircle,
   MapPin,
@@ -14,20 +12,22 @@ import {
   Image as ImageIcon,
   Bookmark,
   Sparkles,
+  MessageSquare,
+  Camera,
 } from 'lucide-react'
 
 const FEATURES_EMPRESA = [
-  'Publicá trabajos de instalación gráfica',
-  'Recibí ofertas de instaladores verificados',
-  'Coordiná fechas y precios en la plataforma',
-  'Calificá y dejá reseñas',
+  'Cargá y organizá todos tus trabajos de instalación',
+  'Invitá instaladores y armá tu propio equipo',
+  'Asigná cada trabajo al instalador indicado',
+  'Hacé seguimiento en tiempo real con evidencia fotográfica',
 ]
 
 const FEATURES_INSTALADOR = [
-  'Accedé a trabajos de empresas reales',
-  'Ofertá con tus mejores precios',
-  'Construí tu reputación con reseñas',
-  'Gestioná tu agenda de instalaciones',
+  'Sumate al equipo con la invitación de tu empresa',
+  'Recibí trabajos asignados con toda la información técnica',
+  'Coordiná fechas y detalles por chat integrado',
+  'Subí evidencia del trabajo terminado desde tu celular',
 ]
 
 const CATEGORIAS = [
@@ -84,10 +84,10 @@ export default function HomePage() {
               Iniciar sesión
             </Link>
             <Link
-              href="/signup"
+              href="mailto:nicolas.galarza87@gmail.com"
               className="px-4 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all shadow-md shadow-primary-600/10 hover:shadow-lg hover:shadow-primary-600/25 duration-200"
             >
-              Registrate gratis
+              Solicitar demo
             </Link>
           </div>
         </div>
@@ -99,25 +99,26 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100/50 text-blue-700 text-xs font-semibold mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-              El marketplace líder del sector gráfico
+              El software de gestión del sector gráfico
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
-              El marketplace de{' '}
+              Gestioná tus{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-500">
                 instalaciones gráficas
               </span>{' '}
-              profesionales
+              en un solo lugar
             </h1>
             <p className="mt-6 text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
-              Conectamos empresas que necesitan instalaciones gráficas con los
-              mejores instaladores profesionales de Argentina y Brasil. Rápido, seguro y verificado.
+              La plataforma para imprentas, agencias y empresas del sector gráfico:
+              armá tu equipo de instaladores, asigná trabajos y hacé seguimiento
+              de cada instalación de principio a fin.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="/signup"
+                href="mailto:nicolas.galarza87@gmail.com"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-white bg-primary-600 rounded-2xl hover:bg-primary-700 active:scale-[0.98] transition-all shadow-lg shadow-primary-600/20 hover:shadow-xl hover:shadow-primary-600/35 duration-200"
               >
-                Comenzar ahora
+                Solicitar una demo
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <Link
@@ -141,7 +142,7 @@ export default function HomePage() {
             ¿Cómo funciona?
           </h2>
           <p className="mt-4 text-center text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Tres pasos simples para conectar tu empresa con instaladores profesionales y calificados.
+            Tres pasos simples para digitalizar la gestión de tus instalaciones gráficas.
           </p>
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -151,11 +152,11 @@ export default function HomePage() {
                 1
               </div>
               <h3 className="text-lg font-bold text-slate-900">
-                Publicá tu trabajo
+                Armá tu equipo
               </h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed">
-                Describí la instalación gráfica que necesitás, subí fotos y
-                definí tu presupuesto estimado.
+                Invitá a tus instaladores de confianza por email. Ellos aceptan
+                la invitación y quedan listos para trabajar.
               </p>
             </div>
 
@@ -165,11 +166,11 @@ export default function HomePage() {
                 2
               </div>
               <h3 className="text-lg font-bold text-slate-900">
-                Recibí ofertas
+                Cargá y asigná trabajos
               </h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed">
-                Instaladores verificados te envían sus propuestas detalladas con precio,
-                plazo y disponibilidad.
+                Creá el trabajo con especificaciones técnicas, fotos y dirección,
+                y asignalo directo al instalador indicado.
               </p>
             </div>
 
@@ -179,10 +180,11 @@ export default function HomePage() {
                 3
               </div>
               <h3 className="text-lg font-bold text-slate-900">
-                Coordiná y cerrá
+                Hacé seguimiento
               </h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed">
-                Elegí la mejor oferta, coordiná la fecha por chat, y calificá la calidad del trabajo terminado.
+                Seguí el estado de cada instalación en tiempo real, coordiná por
+                chat y recibí evidencia fotográfica del trabajo terminado.
               </p>
             </div>
           </div>
@@ -219,10 +221,10 @@ export default function HomePage() {
                 </ul>
               </div>
               <Link
-                href="/signup"
+                href="mailto:nicolas.galarza87@gmail.com"
                 className="mt-8 inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all shadow-md shadow-primary-600/10 hover:shadow-lg hover:shadow-primary-600/25 duration-200"
               >
-                Registrá tu empresa
+                Solicitá una demo para tu empresa
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -253,10 +255,10 @@ export default function HomePage() {
                 </ul>
               </div>
               <Link
-                href="/signup"
+                href="mailto:nicolas.galarza87@gmail.com"
                 className="mt-8 inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white bg-amber-600 rounded-xl hover:bg-amber-700 active:scale-[0.98] transition-all shadow-md shadow-amber-600/10 hover:shadow-lg hover:shadow-amber-600/25 duration-200"
               >
-                Unite como instalador
+                Sumate con la invitación de tu empresa
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -268,10 +270,11 @@ export default function HomePage() {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-extrabold text-center text-slate-900 tracking-tight">
-            Especialistas en instalaciones gráficas
+            Hecho para el sector gráfico
           </h2>
           <p className="mt-4 text-center text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Nos enfocamos exclusivamente en el sector gráfico. Conectamos con profesionales especializados en cada nicho.
+            No es un software genérico: cada funcionalidad está pensada para los
+            trabajos de instalación gráfica que tu empresa maneja todos los días.
           </p>
 
           <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -302,24 +305,24 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
             <div className="flex flex-col items-center">
               <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
-                <Shield className="h-7 w-7 text-primary-600" />
+                <Camera className="h-7 w-7 text-primary-600" />
               </div>
               <h4 className="font-bold text-slate-900 text-lg">
-                Instaladores verificados
+                Evidencia fotográfica
               </h4>
               <p className="mt-2 text-sm text-slate-500 leading-relaxed max-w-xs">
-                Validamos antecedentes, documentación y portfolio de cada instalador.
+                Cada trabajo terminado queda documentado con fotos, para vos y para tu cliente final.
               </p>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mb-4">
-                <Star className="h-7 w-7 text-amber-500" />
+                <MessageSquare className="h-7 w-7 text-amber-500" />
               </div>
               <h4 className="font-bold text-slate-900 text-lg">
-                Sistema de calificaciones
+                Comunicación centralizada
               </h4>
               <p className="mt-2 text-sm text-slate-500 leading-relaxed max-w-xs">
-                Calificaciones reales basadas en proyectos finalizados en la plataforma.
+                Chat integrado por trabajo: nada de perseguir instaladores por WhatsApp.
               </p>
             </div>
             <div className="flex flex-col items-center">
@@ -330,7 +333,7 @@ export default function HomePage() {
                 Argentina y Brasil
               </h4>
               <p className="mt-2 text-sm text-slate-500 leading-relaxed max-w-xs">
-                Cobertura geográfica amplia en las principales zonas comerciales.
+                Pensado para operaciones con instalaciones en las principales zonas comerciales.
               </p>
             </div>
           </div>
@@ -342,16 +345,17 @@ export default function HomePage() {
         <div className="max-w-5xl w-full bg-gradient-to-r from-primary-600 to-blue-700 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden shadow-xl shadow-primary-600/10">
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
-              ¿Listo para simplificar tus instalaciones?
+              ¿Listo para ordenar la gestión de tus instalaciones?
             </h2>
             <p className="mt-4 text-base text-blue-100 leading-relaxed">
-              Registrate sin costo hoy mismo. Publicá tu primer proyecto en minutos y conectá con instaladores calificados.
+              Pedí una demo y te mostramos cómo Se Instala Pro se adapta a la
+              operación de tu empresa. Sin compromiso.
             </p>
             <Link
-              href="/signup"
+              href="mailto:nicolas.galarza87@gmail.com"
               className="mt-8 inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-primary-700 bg-white rounded-2xl hover:bg-slate-50 active:scale-[0.98] transition-all shadow-lg shadow-black/5 hover:shadow-xl duration-200"
             >
-              Crear cuenta gratis
+              Solicitar una demo
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -368,7 +372,7 @@ export default function HomePage() {
             <div className="flex gap-6 text-sm font-semibold">
               <Link href="#como-funciona" className="hover:text-white transition-colors">Cómo funciona</Link>
               <Link href="/login" className="hover:text-white transition-colors">Ingresar</Link>
-              <Link href="/signup" className="hover:text-white transition-colors">Registrarse</Link>
+              <Link href="mailto:nicolas.galarza87@gmail.com" className="hover:text-white transition-colors">Contacto</Link>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10 text-xs">

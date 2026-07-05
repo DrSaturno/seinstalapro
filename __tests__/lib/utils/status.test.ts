@@ -2,13 +2,19 @@
 // SDD TESTS - Status Utils
 // ============================================================
 
-import { JOB_STATUS, OFFER_STATUS, COMPANY_STATUS, INSTALLER_STATUS } from '@/lib/utils/status'
+import {
+  JOB_STATUS,
+  COMPANY_STATUS,
+  INSTALLER_STATUS,
+  TEAM_MEMBERSHIP_STATUS,
+  INVITATION_STATUS,
+} from '@/lib/utils/status'
 
 describe('JOB_STATUS', () => {
   it('tiene config para todos los estados de job', () => {
     const expectedStatuses = [
-      'draft', 'pending_admin_approval', 'published', 'receiving_offers',
-      'offer_accepted', 'coordinating', 'confirmed', 'in_progress',
+      'draft', 'pending_admin_approval', 'published', 'assigned',
+      'coordinating', 'confirmed', 'in_progress',
       'completed_by_installer', 'under_company_review', 'approved',
       'rated', 'cancelled', 'disputed',
     ]
@@ -25,16 +31,27 @@ describe('JOB_STATUS', () => {
     expect(JOB_STATUS.draft.label).toBe('Borrador')
   })
 
-  it('published tiene label Publicado', () => {
-    expect(JOB_STATUS.published.label).toBe('Publicado')
+  it('assigned tiene label Asignado', () => {
+    expect(JOB_STATUS.assigned.label).toBe('Asignado')
   })
 })
 
-describe('OFFER_STATUS', () => {
-  it('tiene config para todos los estados de oferta', () => {
-    const expectedStatuses = ['sent', 'withdrawn', 'shortlisted', 'accepted', 'rejected', 'expired']
+describe('TEAM_MEMBERSHIP_STATUS', () => {
+  it('tiene config para todos los estados de membresía', () => {
+    const expectedStatuses = ['active', 'removed']
     expectedStatuses.forEach((status) => {
-      const config = OFFER_STATUS[status as keyof typeof OFFER_STATUS]
+      const config = TEAM_MEMBERSHIP_STATUS[status as keyof typeof TEAM_MEMBERSHIP_STATUS]
+      expect(config).toBeDefined()
+      expect(config.label).toBeTruthy()
+    })
+  })
+})
+
+describe('INVITATION_STATUS', () => {
+  it('tiene config para todos los estados de invitación', () => {
+    const expectedStatuses = ['pending', 'accepted', 'expired', 'revoked']
+    expectedStatuses.forEach((status) => {
+      const config = INVITATION_STATUS[status as keyof typeof INVITATION_STATUS]
       expect(config).toBeDefined()
       expect(config.label).toBeTruthy()
     })

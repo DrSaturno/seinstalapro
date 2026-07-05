@@ -194,8 +194,7 @@ export async function getInstallerReviews(): Promise<
 
 // --- Obtener stats del instalador ---
 export async function getInstallerStats(): Promise<{
-  activeOffers: number
-  acceptedOffers: number
+  teamsCount: number
   activeAgreements: number
   completedJobs: number
   avgRating: number
@@ -206,16 +205,14 @@ export async function getInstallerStats(): Promise<{
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    return {
-      activeOffers: 0,
-      acceptedOffers: 0,
-      activeAgreements: 0,
-      completedJobs: 0,
-      avgRating: 0,
-      totalReviews: 0,
-    }
+  const empty = {
+    teamsCount: 0,
+    activeAgreements: 0,
+    completedJobs: 0,
+    avgRating: 0,
+    totalReviews: 0,
   }
+  if (!user) return empty
 
   const { data: installer } = await supabase
     .from('installers')
@@ -223,34 +220,24 @@ export async function getInstallerStats(): Promise<{
     .eq('profile_id', user.id)
     .single()
 
-  if (!installer) {
-    return {
-      activeOffers: 0,
-      acceptedOffers: 0,
-      activeAgreements: 0,
-      completedJobs: 0,
-      avgRating: 0,
-      totalReviews: 0,
-    }
-  }
+  if (!installer) return empty
 
-  const [offers, agreements] = await Promise.all([
+  const [memberships, agreements] = await Promise.all([
     supabase
-      .from('offers')
-      .select('status')
-      .eq('installer_id', installer.id),
+      .from('team_memberships')
+      .select('id', { count: 'exact', head: true })
+      .eq('installer_id', installer.id)
+      .eq('status', 'active'),
     supabase
       .from('agreements')
       .select('status')
       .eq('installer_id', installer.id),
   ])
 
-  const offerData = offers.data || []
   const agreementData = agreements.data || []
 
   return {
-    activeOffers: offerData.filter((o) => o.status === 'sent').length,
-    acceptedOffers: offerData.filter((o) => o.status === 'accepted').length,
+    teamsCount: memberships.count || 0,
     activeAgreements: agreementData.filter((a) =>
       ['active', 'coordinating', 'confirmed', 'in_progress'].includes(a.status)
     ).length,
@@ -258,4 +245,37 @@ export async function getInstallerStats(): Promise<{
     avgRating: installer.avg_rating || 0,
     totalReviews: installer.total_reviews || 0,
   }
+}
+
+// --- Equipos del instalador (a qué empresas pertenece) ---
+export async function getMyTeams(): Promise<
+  Array<{ companyName: string; companyId: string; joinedAt: string }>
+> {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data: installer } = await supabase
+    .from('installers')
+    .select('id')
+    .eq('profile_id', user.id)
+    .single()
+
+  if (!installer) return []
+
+  const { data } = await supabase
+    .from('team_memberships')
+    .select('company_id, joined_at, created_at, company:companies(company_name)')
+    .eq('installer_id', installer.id)
+    .eq('status', 'active')
+    .order('joined_at', { ascending: false })
+
+  return (data || []).map((row: any) => ({
+    companyId: row.company_id,
+    companyName: row.company?.company_name || 'Empresa',
+    joinedAt: row.joined_at || row.created_at,
+  }))
 }

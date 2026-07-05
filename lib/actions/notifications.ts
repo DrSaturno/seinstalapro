@@ -134,7 +134,7 @@ export async function notifyAdmins(params: {
   const { data: admins } = await supabase
     .from('profiles')
     .select('id')
-    .eq('role', 'admin')
+    .in('role', ['admin', 'superadmin'])
 
   if (!admins || admins.length === 0) return
 

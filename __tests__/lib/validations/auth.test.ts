@@ -5,7 +5,9 @@
 
 import {
   loginSchema,
-  signupSchema,
+  createCompanySchema,
+  inviteInstallerSchema,
+  acceptInvitationSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } from '@/lib/validations/auth'
@@ -61,47 +63,102 @@ describe('loginSchema', () => {
   })
 })
 
-describe('signupSchema', () => {
+describe('createCompanySchema', () => {
   const validData = {
+    company_name: 'Imprenta Ejemplo S.A.',
     full_name: 'Juan Pérez',
     email: 'juan@ejemplo.com',
     password: 'password123',
-    confirmPassword: 'password123',
-    role: 'company' as const,
     country_code: 'AR',
   }
 
-  it('acepta datos válidos para empresa', () => {
-    const result = signupSchema.safeParse(validData)
+  it('acepta datos válidos', () => {
+    const result = createCompanySchema.safeParse(validData)
     expect(result.success).toBe(true)
   })
 
-  it('acepta datos válidos para instalador', () => {
-    const result = signupSchema.safeParse({
+  it('rechaza nombre de empresa vacío', () => {
+    const result = createCompanySchema.safeParse({
       ...validData,
-      role: 'installer',
+      company_name: '',
     })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 
-  it('rechaza nombre vacío', () => {
-    const result = signupSchema.safeParse({
+  it('rechaza nombre de responsable vacío', () => {
+    const result = createCompanySchema.safeParse({
       ...validData,
       full_name: '',
     })
     expect(result.success).toBe(false)
   })
 
-  it('rechaza nombre de 1 caracter', () => {
-    const result = signupSchema.safeParse({
+  it('rechaza email inválido', () => {
+    const result = createCompanySchema.safeParse({
       ...validData,
-      full_name: 'A',
+      email: 'no-es-email',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza contraseña menor a 6 caracteres', () => {
+    const result = createCompanySchema.safeParse({
+      ...validData,
+      password: '12345',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('usa AR como país por defecto', () => {
+    const { country_code, ...withoutCountry } = validData
+    const result = createCompanySchema.safeParse(withoutCountry)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.country_code).toBe('AR')
+    }
+  })
+})
+
+describe('inviteInstallerSchema', () => {
+  it('acepta email válido', () => {
+    const result = inviteInstallerSchema.safeParse({ email: 'instalador@test.com' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rechaza email vacío', () => {
+    const result = inviteInstallerSchema.safeParse({ email: '' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza email inválido', () => {
+    const result = inviteInstallerSchema.safeParse({ email: 'invalido' })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('acceptInvitationSchema', () => {
+  const validData = {
+    full_name: 'Pedro Instalador',
+    password: 'password123',
+    confirmPassword: 'password123',
+    country_code: 'AR',
+  }
+
+  it('acepta datos válidos', () => {
+    const result = acceptInvitationSchema.safeParse(validData)
+    expect(result.success).toBe(true)
+  })
+
+  it('rechaza nombre vacío', () => {
+    const result = acceptInvitationSchema.safeParse({
+      ...validData,
+      full_name: '',
     })
     expect(result.success).toBe(false)
   })
 
   it('rechaza contraseñas que no coinciden', () => {
-    const result = signupSchema.safeParse({
+    const result = acceptInvitationSchema.safeParse({
       ...validData,
       confirmPassword: 'otra-password',
     })
@@ -114,31 +171,9 @@ describe('signupSchema', () => {
     }
   })
 
-  it('rechaza rol inválido', () => {
-    const result = signupSchema.safeParse({
-      ...validData,
-      role: 'admin',
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('solo acepta roles company e installer', () => {
-    const roles = ['company', 'installer']
-    roles.forEach((role) => {
-      const result = signupSchema.safeParse({ ...validData, role })
-      expect(result.success).toBe(true)
-    })
-
-    const invalidRoles = ['admin', 'superadmin', 'user', '']
-    invalidRoles.forEach((role) => {
-      const result = signupSchema.safeParse({ ...validData, role })
-      expect(result.success).toBe(false)
-    })
-  })
-
   it('rechaza contraseña mayor a 72 caracteres', () => {
     const longPassword = 'a'.repeat(73)
-    const result = signupSchema.safeParse({
+    const result = acceptInvitationSchema.safeParse({
       ...validData,
       password: longPassword,
       confirmPassword: longPassword,
@@ -147,15 +182,8 @@ describe('signupSchema', () => {
   })
 
   it('usa AR como país por defecto', () => {
-    const result = signupSchema.safeParse({
-      full_name: 'Test',
-      email: 'test@test.com',
-      password: 'password123',
-      confirmPassword: 'password123',
-      role: 'company',
-    })
-    // country_code tiene default 'AR', pero al no enviarlo
-    // el schema lo agrega automáticamente
+    const { country_code, ...withoutCountry } = validData
+    const result = acceptInvitationSchema.safeParse(withoutCountry)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.country_code).toBe('AR')

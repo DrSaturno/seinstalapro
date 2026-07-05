@@ -51,7 +51,7 @@ const empresaNav: NavSection[] = [
   {
     title: 'Gestión',
     items: [
-      { label: 'Ofertas recibidas', href: '/empresa/ofertas', icon: ClipboardList },
+      { label: 'Mi equipo', href: '/empresa/equipo', icon: Users },
       { label: 'Acuerdos', href: '/empresa/acuerdos', icon: FileCheck2 },
       { label: 'Mensajes', href: '/empresa/mensajes', icon: MessageSquare },
     ],
@@ -75,13 +75,12 @@ const instaladorNav: NavSection[] = [
   {
     title: 'Trabajos',
     items: [
-      { label: 'Buscar trabajos', href: '/instalador/trabajos', icon: Search },
+      { label: 'Mis trabajos', href: '/instalador/mis-trabajos', icon: ClipboardList },
     ],
   },
   {
     title: 'Gestión',
     items: [
-      { label: 'Mis ofertas', href: '/instalador/ofertas', icon: ClipboardList },
       { label: 'Acuerdos', href: '/instalador/acuerdos', icon: FileCheck2 },
       { label: 'Mensajes', href: '/instalador/mensajes', icon: MessageSquare },
       { label: 'Reseñas', href: '/instalador/resenas', icon: Star },
@@ -109,13 +108,12 @@ const adminNav: NavSection[] = [
       { label: 'Empresas', href: '/admin/empresas', icon: Building2 },
       { label: 'Instaladores', href: '/admin/instaladores', icon: Wrench },
       { label: 'Trabajos', href: '/admin/trabajos', icon: Briefcase },
-      { label: 'Ofertas', href: '/admin/ofertas', icon: ClipboardList },
     ],
   },
   {
     title: 'Soporte',
     items: [
-      { label: 'Disputas', href: '/admin/disputas', icon: AlertTriangle },
+      { label: 'Reportes', href: '/admin/disputas', icon: AlertTriangle },
       { label: 'Usuarios', href: '/admin/usuarios', icon: Users },
     ],
   },

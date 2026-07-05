@@ -16,14 +16,15 @@ CREATE TYPE public.profile_status AS ENUM ('active', 'pending', 'suspended', 'de
 CREATE TYPE public.company_status AS ENUM ('pending_review', 'verified', 'rejected', 'suspended');
 CREATE TYPE public.installer_status AS ENUM ('draft', 'pending_review', 'approved', 'changes_requested', 'rejected', 'suspended');
 CREATE TYPE public.job_status AS ENUM (
-  'draft', 'pending_admin_approval', 'published', 'receiving_offers',
-  'offer_accepted', 'coordinating', 'confirmed', 'in_progress',
+  'draft', 'pending_admin_approval', 'published', 'assigned',
+  'coordinating', 'confirmed', 'in_progress',
   'completed_by_installer', 'under_company_review', 'approved', 'rated', 'cancelled', 'disputed'
 );
-CREATE TYPE public.offer_status AS ENUM ('sent', 'withdrawn', 'shortlisted', 'accepted', 'rejected', 'expired');
 CREATE TYPE public.agreement_status AS ENUM ('active', 'coordinating', 'confirmed', 'in_progress', 'completed', 'cancelled', 'disputed');
 CREATE TYPE public.dispute_status AS ENUM ('new', 'under_review', 'waiting_company', 'waiting_installer', 'resolved', 'closed');
 CREATE TYPE public.file_type AS ENUM ('image', 'document', 'other');
+CREATE TYPE public.team_membership_status AS ENUM ('active', 'removed');
+CREATE TYPE public.invitation_status AS ENUM ('pending', 'accepted', 'expired', 'revoked');
 
 -- ============================================================
 -- PROFILES TABLE (linked to auth.users)
@@ -54,11 +55,12 @@ CREATE TABLE public.companies (
   website TEXT,
   logo_url TEXT,
   description TEXT,
-  status public.company_status NOT NULL DEFAULT 'pending_review',
+  status public.company_status NOT NULL DEFAULT 'verified',
   country TEXT NOT NULL DEFAULT 'AR',
   city TEXT,
   address TEXT,
   verified_at TIMESTAMP WITH TIME ZONE,
+  created_by_superadmin_id UUID REFERENCES public.profiles(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(profile_id)
@@ -148,13 +150,13 @@ CREATE TABLE public.jobs (
   description TEXT,
   location_id UUID REFERENCES public.locations(id),
   status public.job_status NOT NULL DEFAULT 'draft',
-  budget_min NUMERIC(10,2),
-  budget_max NUMERIC(10,2),
+  budget_min NUMERIC(10,2), -- optional internal cost note, not a payment feature
+  budget_max NUMERIC(10,2), -- optional internal cost note, not a payment feature
   currency TEXT DEFAULT 'ARS',
   start_date DATE,
   end_date DATE,
   files_count INTEGER DEFAULT 0,
-  offers_count INTEGER DEFAULT 0,
+  claimed_by_installer_id UUID REFERENCES public.installers(id),
   admin_approved_at TIMESTAMP WITH TIME ZONE,
   admin_rejection_reason TEXT,
   published_at TIMESTAMP WITH TIME ZONE,
@@ -179,43 +181,50 @@ CREATE TABLE public.job_files (
 );
 
 -- ============================================================
--- OFFERS TABLE
+-- TEAM MEMBERSHIPS (installer <-> company, many-to-many)
 -- ============================================================
 
-CREATE TABLE public.offers (
+CREATE TABLE public.team_memberships (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  job_id UUID NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
+  company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
   installer_id UUID NOT NULL REFERENCES public.installers(id) ON DELETE CASCADE,
-  status public.offer_status NOT NULL DEFAULT 'sent',
-  proposed_price NUMERIC(10,2) NOT NULL,
-  currency TEXT DEFAULT 'ARS',
-  availability_start_date DATE,
-  availability_end_date DATE,
-  estimated_duration TEXT, -- 'days', 'weeks', 'months'
-  estimated_duration_value INTEGER,
-  team_size INTEGER DEFAULT 1,
-  message TEXT,
-  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  reviewed_at TIMESTAMP WITH TIME ZONE,
-  accepted_at TIMESTAMP WITH TIME ZONE,
-  rejected_at TIMESTAMP WITH TIME ZONE,
+  status public.team_membership_status NOT NULL DEFAULT 'active',
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  removed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(job_id, installer_id)
+  UNIQUE(company_id, installer_id)
 );
 
 -- ============================================================
--- AGREEMENTS TABLE (created when offer is accepted)
+-- INVITATIONS (company invites an installer by email)
+-- ============================================================
+
+CREATE TABLE public.invitations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  status public.invitation_status NOT NULL DEFAULT 'pending',
+  invited_by UUID NOT NULL REFERENCES public.profiles(id),
+  installer_id UUID REFERENCES public.installers(id),
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days'),
+  accepted_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
+-- AGREEMENTS TABLE (created when a company assigns, or an installer
+-- claims, a job -- there is no bidding/offer step anymore)
 -- ============================================================
 
 CREATE TABLE public.agreements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   job_id UUID NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
-  offer_id UUID NOT NULL REFERENCES public.offers(id) ON DELETE CASCADE,
   company_id UUID NOT NULL REFERENCES public.companies(id),
   installer_id UUID NOT NULL REFERENCES public.installers(id),
   status public.agreement_status NOT NULL DEFAULT 'active',
-  final_price NUMERIC(10,2),
+  final_price NUMERIC(10,2), -- optional internal cost note, not a payment feature
   currency TEXT DEFAULT 'ARS',
   confirmed_start_date DATE,
   confirmed_end_date DATE,
@@ -324,9 +333,14 @@ CREATE INDEX idx_jobs_company_id ON public.jobs(company_id);
 CREATE INDEX idx_jobs_category_id ON public.jobs(category_id);
 CREATE INDEX idx_jobs_status ON public.jobs(status);
 CREATE INDEX idx_job_files_job_id ON public.job_files(job_id);
-CREATE INDEX idx_offers_job_id ON public.offers(job_id);
-CREATE INDEX idx_offers_installer_id ON public.offers(installer_id);
-CREATE INDEX idx_offers_status ON public.offers(status);
+CREATE INDEX idx_jobs_claimed_by_installer_id ON public.jobs(claimed_by_installer_id);
+CREATE INDEX idx_team_memberships_company_id ON public.team_memberships(company_id);
+CREATE INDEX idx_team_memberships_installer_id ON public.team_memberships(installer_id);
+CREATE INDEX idx_team_memberships_status ON public.team_memberships(status);
+CREATE INDEX idx_invitations_company_id ON public.invitations(company_id);
+CREATE INDEX idx_invitations_token ON public.invitations(token);
+CREATE INDEX idx_invitations_email ON public.invitations(email);
+CREATE INDEX idx_invitations_status ON public.invitations(status);
 CREATE INDEX idx_agreements_company_id ON public.agreements(company_id);
 CREATE INDEX idx_agreements_installer_id ON public.agreements(installer_id);
 CREATE INDEX idx_agreements_status ON public.agreements(status);
@@ -366,8 +380,8 @@ BEFORE UPDATE ON public.jobs
 FOR EACH ROW
 EXECUTE FUNCTION moddatetime (updated_at);
 
-CREATE TRIGGER update_offers_updated_at
-BEFORE UPDATE ON public.offers
+CREATE TRIGGER update_team_memberships_updated_at
+BEFORE UPDATE ON public.team_memberships
 FOR EACH ROW
 EXECUTE FUNCTION moddatetime (updated_at);
 

@@ -13,8 +13,12 @@ const PUBLIC_ROUTES = ['/', '/forgot-password', '/reset-password']
 // Rutas de auth (callback, confirm)
 const AUTH_CALLBACK_ROUTES = ['/auth/callback', '/auth/confirm']
 
-// Rutas de login/signup (públicas pero redirigen si ya está logueado)
-const AUTH_FORM_ROUTES = ['/login', '/signup']
+// Aceptación de invitaciones: accesible con o sin sesión (gated por token)
+const INVITATION_ROUTE_PREFIX = '/invitaciones'
+
+// Rutas de login (públicas pero redirigen si ya está logueado).
+// No hay signup público: las cuentas se crean por superadmin o invitación.
+const AUTH_FORM_ROUTES = ['/login']
 
 // Mapeo de roles a rutas base
 const ROLE_ROUTES: Record<UserRole, string> = {
@@ -33,6 +37,11 @@ export async function updateSession(request: NextRequest) {
 
   // Auth callbacks — siempre permitir
   if (AUTH_CALLBACK_ROUTES.some(route => pathname.startsWith(route))) {
+    return response
+  }
+
+  // Invitaciones — accesibles con o sin sesión (la página valida el token)
+  if (pathname.startsWith(INVITATION_ROUTE_PREFIX)) {
     return response
   }
 

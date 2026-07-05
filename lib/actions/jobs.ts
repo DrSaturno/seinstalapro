@@ -342,7 +342,7 @@ export async function cancelJob(jobId: string): Promise<ActionResult> {
     .update({ status: 'cancelled' })
     .eq('id', jobId)
     .eq('company_id', company.id)
-    .in('status', ['draft', 'pending_admin_approval', 'published', 'receiving_offers'])
+    .in('status', ['draft', 'pending_admin_approval', 'published'])
 
   if (error) {
     return { success: false, error: 'Error al cancelar el trabajo' }
