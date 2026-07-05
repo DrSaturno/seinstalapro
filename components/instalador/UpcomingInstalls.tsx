@@ -11,8 +11,10 @@ import {
   MapPin,
   Building2,
   CalendarDays,
+  CalendarPlus,
   Umbrella,
 } from 'lucide-react'
+import { googleCalendarUrl } from '@/lib/utils/gcal'
 import { formatDate } from '@/lib/utils/format'
 import type { UpcomingInstallation } from '@/lib/actions/weather'
 import type { WeatherKind } from '@/lib/utils/weather'
@@ -47,16 +49,17 @@ export function UpcomingInstalls({ installations }: UpcomingInstallsProps) {
           const WeatherIcon = weatherConfig?.icon
 
           return (
-            <Link
+            <div
               key={install.agreementId}
-              href="/instalador/acuerdos"
-              className="block bg-white rounded-2xl border border-slate-100 p-5 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md transition-all duration-200"
+              className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm shadow-slate-100/30 hover:border-primary-200 hover:shadow-md transition-all duration-200"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-slate-800 truncate">
-                    {install.jobTitle}
-                  </h3>
+                  <Link href="/instalador/acuerdos">
+                    <h3 className="font-bold text-slate-800 truncate hover:text-primary-600 transition-colors">
+                      {install.jobTitle}
+                    </h3>
+                  </Link>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-400 font-medium">
                     <span className="flex items-center gap-1">
                       <Building2 size={12} />
@@ -73,6 +76,21 @@ export function UpcomingInstalls({ installations }: UpcomingInstallsProps) {
                       {formatDate(install.startDate)}
                       {install.endDate ? ` — ${formatDate(install.endDate)}` : ''}
                     </span>
+                    <a
+                      href={googleCalendarUrl({
+                        title: `Instalación: ${install.jobTitle}`,
+                        startDate: install.startDate,
+                        endDate: install.endDate,
+                        details: `Empresa: ${install.companyName} · Se Instala Pro`,
+                        location: install.city,
+                      })}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary-600 hover:text-primary-700 font-semibold transition-colors"
+                    >
+                      <CalendarPlus size={12} />
+                      Agendar
+                    </a>
                   </div>
                 </div>
 
@@ -103,7 +121,7 @@ export function UpcomingInstalls({ installations }: UpcomingInstallsProps) {
                   </span>
                 </div>
               )}
-            </Link>
+            </div>
           )
         })}
       </div>

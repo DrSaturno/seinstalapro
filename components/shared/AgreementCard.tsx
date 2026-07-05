@@ -12,9 +12,11 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
+  CalendarPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { AGREEMENT_STATUS } from '@/lib/utils/status'
+import { googleCalendarUrl } from '@/lib/utils/gcal'
 import { formatCurrency, formatRelativeDate, formatDate } from '@/lib/utils/format'
 import type { AgreementStatus } from '@/types/database'
 import type { AgreementFull } from '@/lib/actions/types'
@@ -135,6 +137,25 @@ export function AgreementCard({
             </span>
           </div>
         )}
+
+        {/* Agendar en Google Calendar (mientras la instalación esté por delante) */}
+        {agreement.confirmed_start_date &&
+          ['coordinating', 'confirmed', 'in_progress'].includes(agreement.status) && (
+            <a
+              href={googleCalendarUrl({
+                title: `Instalación: ${job?.title || 'Trabajo'}`,
+                startDate: agreement.confirmed_start_date,
+                endDate: agreement.confirmed_end_date || undefined,
+                details: `${viewAs === 'company' ? 'Instalador' : 'Empresa'}: ${counterpart} · Se Instala Pro`,
+              })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-semibold text-xs transition-colors"
+            >
+              <CalendarPlus size={14} />
+              Agendar en Google Calendar
+            </a>
+          )}
       </div>
 
       {/* Línea de tiempo de progreso del proyecto (Oculta si está Cancelado) */}
