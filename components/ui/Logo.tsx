@@ -7,20 +7,20 @@ interface LogoProps {
 }
 
 const sizeConfig = {
-  sm: { icon: 'h-8 w-8', text: 'text-lg' },
-  md: { icon: 'h-10 w-10', text: 'text-xl' },
-  lg: { icon: 'h-14 w-14', text: 'text-3xl' },
+  sm: { icon: 'h-8 w-8 rounded-lg', text: 'text-base font-bold' },
+  md: { icon: 'h-10 w-10 rounded-xl', text: 'text-lg font-extrabold' },
+  lg: { icon: 'h-14 w-14 rounded-2xl', text: 'text-2xl font-black' },
 }
 
 export function Logo({ size = 'md', className, showText = true }: LogoProps) {
   const config = sizeConfig[size]
 
   return (
-    <div className={clsx('flex items-center gap-2', className)}>
-      {/* Icono del logo - herramienta de instalación gráfica */}
+    <div className={clsx('flex items-center gap-2.5 select-none', className)}>
+      {/* Icono del logo - espátula de vinilo abstracta y moderna con gradiente */}
       <div
         className={clsx(
-          'flex items-center justify-center rounded-xl bg-primary-500 text-white font-bold',
+          'flex items-center justify-center bg-gradient-to-tr from-primary-600 to-indigo-400 text-white shadow-md shadow-primary-500/10 transition-transform duration-300 hover:scale-105',
           config.icon
         )}
       >
@@ -28,41 +28,24 @@ export function Logo({ size = 'md', className, showText = true }: LogoProps) {
           viewBox="0 0 40 40"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-3/4 h-3/4"
+          className="w-7/12 h-7/12"
         >
-          {/* Squeegee / espátula de vinilo */}
-          <rect
-            x="8"
-            y="8"
-            width="24"
-            height="6"
-            rx="2"
+          {/* Squeegee / espátula de vinilo minimalista y moderna */}
+          <path
+            d="M8 12C8 10.3431 9.34315 9 11 9H29C30.6569 9 32 10.3431 32 12V15H8V12Z"
             fill="currentColor"
           />
-          <rect
-            x="14"
-            y="14"
-            width="4"
-            height="18"
-            rx="1"
+          <path
+            d="M10 27H30V30C30 30.5523 29.5523 31 29 31H11C10.4477 31 10 30.5523 10 30V27Z"
             fill="currentColor"
+            fillOpacity="0.4"
           />
-          <rect
-            x="22"
-            y="14"
-            width="4"
-            height="18"
-            rx="1"
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M15 15H17V27H15V15ZM23 15H25V27H23V15Z"
             fill="currentColor"
-          />
-          <rect
-            x="10"
-            y="28"
-            width="20"
-            height="4"
-            rx="1"
-            fill="currentColor"
-            opacity="0.6"
+            fillOpacity="0.8"
           />
         </svg>
       </div>
@@ -70,7 +53,7 @@ export function Logo({ size = 'md', className, showText = true }: LogoProps) {
         <div className="flex flex-col leading-tight">
           <span
             className={clsx(
-              'font-bold text-primary-500 tracking-tight',
+              'text-slate-900 tracking-tight font-extrabold',
               config.text
             )}
           >
@@ -78,11 +61,11 @@ export function Logo({ size = 'md', className, showText = true }: LogoProps) {
           </span>
           <span
             className={clsx(
-              'font-bold text-accent-500 -mt-1 tracking-tight',
-              size === 'lg' ? 'text-lg' : 'text-sm'
+              'font-black bg-gradient-to-r from-primary-600 to-indigo-500 bg-clip-text text-transparent tracking-widest -mt-0.5',
+              size === 'lg' ? 'text-sm' : 'text-[10px]'
             )}
           >
-            PRO
+            PRO SOFTWARE
           </span>
         </div>
       )}

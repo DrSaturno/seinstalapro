@@ -15,21 +15,21 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500',
+    'bg-primary-600 text-white hover:bg-primary-700 shadow-md shadow-primary-600/15 hover:shadow-lg hover:shadow-primary-600/25 focus:ring-primary-500 active:scale-[0.98]',
   secondary:
-    'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-400',
+    'bg-slate-50 text-slate-700 border border-slate-200/60 hover:bg-slate-100/80 hover:text-slate-900 focus:ring-slate-300 active:scale-[0.98]',
   outline:
-    'border-2 border-primary-500 text-primary-500 hover:bg-primary-50 focus:ring-primary-500',
+    'border border-slate-200 text-slate-700 hover:bg-slate-50/80 hover:text-slate-950 focus:ring-slate-300 active:scale-[0.98]',
   ghost:
-    'text-gray-700 hover:bg-gray-100 focus:ring-gray-400',
+    'text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus:ring-slate-200 active:scale-[0.98]',
   danger:
-    'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    'bg-rose-500 text-white hover:bg-rose-600 shadow-md shadow-rose-500/15 hover:shadow-lg hover:shadow-rose-500/25 focus:ring-rose-500 active:scale-[0.98]',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-base',
-  lg: 'px-6 py-3 text-lg',
+  sm: 'px-3.5 py-1.5 text-xs font-semibold rounded-xl',
+  md: 'px-4.5 py-2.5 text-sm font-semibold rounded-xl',
+  lg: 'px-6 py-3.5 text-base font-bold rounded-2xl',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -50,7 +50,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={clsx(
-          'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+          'inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary-500/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100',
           variantStyles[variant],
           sizeStyles[size],
           fullWidth && 'w-full',
@@ -61,7 +61,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading && (
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4"
+            className="animate-spin -ml-1 mr-2.5 h-4 w-4 text-current"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

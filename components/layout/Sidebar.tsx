@@ -33,12 +33,12 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-100 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto shadow-sm lg:shadow-none',
+          'fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-200/50 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto shadow-premium',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Header del sidebar */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-50">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100/50">
           <Logo size="sm" />
           <button
             onClick={onClose}
@@ -50,14 +50,14 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         </div>
  
         {/* Badge de rol */}
-        <div className="px-5 py-3">
+        <div className="px-5 py-3.5">
           <span
             className={clsx(
-              'inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold border',
-              role === 'company' && 'bg-blue-50 text-blue-700 border-blue-100/50',
-              role === 'installer' && 'bg-amber-50 text-amber-700 border-amber-100/50',
-              role === 'admin' && 'bg-purple-50 text-purple-700 border-purple-100/50',
-              role === 'superadmin' && 'bg-red-50 text-red-700 border-red-100/50'
+              'inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider border',
+              role === 'company' && 'bg-primary-50/60 text-primary-700 border-primary-100/40',
+              role === 'installer' && 'bg-amber-50/60 text-amber-700 border-amber-100/40',
+              role === 'admin' && 'bg-purple-50/60 text-purple-700 border-purple-100/40',
+              role === 'superadmin' && 'bg-rose-50/60 text-rose-700 border-rose-100/40'
             )}
           >
             <span className="w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse bg-current" />
@@ -70,11 +70,11 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           {navigation.map((section, sIndex) => (
             <div key={sIndex} className="mb-4">
               {section.title && (
-                <p className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   {section.title}
                 </p>
               )}
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {section.items.map((item) => {
                   const isActive =
                     pathname === item.href ||
@@ -87,7 +87,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                   return (
                     <li key={item.href} className="relative">
                       {isActive && (
-                        <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-primary-600 rounded-r-full" />
+                        <span className="absolute left-0 top-3 bottom-3 w-1 bg-gradient-to-b from-primary-500 to-indigo-600 rounded-r-full shadow-glow" />
                       )}
                       <Link
                         href={item.href}
@@ -95,8 +95,8 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                         className={clsx(
                           'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                           isActive
-                            ? 'bg-primary-50 text-primary-700 font-semibold'
-                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                            ? 'bg-primary-50/80 text-primary-700 font-semibold shadow-sm shadow-primary-500/5'
+                            : 'text-slate-500 hover:bg-slate-50/60 hover:text-slate-900'
                         )}
                       >
                         <Icon
@@ -107,7 +107,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                         />
                         <span className="flex-1">{item.label}</span>
                         {item.badge !== undefined && item.badge > 0 && (
-                          <Badge variant="danger">{item.badge}</Badge>
+                          <Badge variant="danger" showDot>{item.badge}</Badge>
                         )}
                       </Link>
                     </li>
@@ -119,8 +119,8 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         </nav>
  
         {/* Footer del sidebar */}
-        <div className="px-5 py-4 border-t border-slate-50">
-          <p className="text-[10px] font-medium text-slate-400 text-center tracking-wider">
+        <div className="px-5 py-4 border-t border-slate-100/50">
+          <p className="text-[10px] font-semibold text-slate-400 text-center tracking-wider">
             SE INSTALA PRO &bull; v0.1
           </p>
         </div>

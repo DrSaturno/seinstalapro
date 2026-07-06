@@ -48,13 +48,13 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
   const roleLabel = profile?.role ? ROLE_LABELS[profile.role] : ''
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm shadow-slate-100/30">
+    <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 shadow-premium">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         {/* Izquierda: Hamburger + Título */}
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50/80 transition-colors"
             aria-label="Abrir menú"
           >
             <Menu className="h-5 w-5" />
@@ -70,7 +70,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100/80 transition-all duration-200"
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-slate-50/80 border border-transparent hover:border-slate-200/40 transition-all duration-200"
             >
               <Avatar
                 src={profile?.avatar_url}
@@ -81,7 +81,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
                 <p className="text-sm font-semibold text-slate-800 leading-tight">
                   {displayName}
                 </p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 leading-none">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 leading-none">
                   {roleLabel}
                 </p>
               </div>
@@ -94,13 +94,13 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
  
             {/* Dropdown menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2.5 w-60 bg-white rounded-2xl shadow-[0_12px_30px_-4px_rgba(0,0,0,0.08)] border border-slate-100 p-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 mt-2.5 w-60 bg-white rounded-2xl shadow-premium-hover border border-slate-200/50 p-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* Info del usuario */}
-                <div className="px-4 py-3.5 border-b border-slate-50 bg-slate-50/50 rounded-xl mb-1.5">
-                  <p className="text-sm font-semibold text-slate-800">
+                <div className="px-4 py-3.5 border-b border-slate-100/50 bg-slate-50/50 rounded-xl mb-1.5">
+                  <p className="text-sm font-bold text-slate-800">
                     {displayName}
                   </p>
-                  <p className="text-xs text-slate-500 truncate mt-0.5">
+                  <p className="text-xs text-slate-500 truncate mt-1">
                     {user?.email}
                   </p>
                 </div>
@@ -117,17 +117,17 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
                         : '/admin/configuracion'
                     router.push(profilePath)
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-xl text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-xl text-left"
                 >
                   <User className="h-4 w-4 text-slate-400" />
                   Mi perfil
                 </button>
  
-                <div className="border-t border-slate-50 my-1" />
+                <div className="border-t border-slate-100/50 my-1.5" />
  
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50/80 transition-colors rounded-xl text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50/80 transition-colors rounded-xl text-left"
                 >
                   <LogOut className="h-4 w-4" />
                   Cerrar sesión
