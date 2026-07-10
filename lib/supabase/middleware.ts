@@ -10,8 +10,10 @@ import type { UserRole } from '@/types/database'
 // Rutas completamente públicas (no necesitan chequeo de auth)
 const PUBLIC_ROUTES = ['/', '/forgot-password', '/reset-password']
 
-// Rutas de auth (callback, confirm)
-const AUTH_CALLBACK_ROUTES = ['/auth/callback', '/auth/confirm']
+// Rutas de auth (callback, confirm, signout)
+// /auth/signout va acá para que el middleware no refresque/reescriba
+// cookies en la misma request en la que el handler las está borrando.
+const AUTH_CALLBACK_ROUTES = ['/auth/callback', '/auth/confirm', '/auth/signout']
 
 // Aceptación de invitaciones: accesible con o sin sesión (gated por token)
 const INVITATION_ROUTE_PREFIX = '/invitaciones'
@@ -73,7 +75,16 @@ export async function updateSession(request: NextRequest) {
             response = NextResponse.next({
               request: { headers: request.headers },
             })
-            response.cookies.set({ name, value: '', ...options })
+            // expires en el pasado para borrar la cookie de verdad.
+            // Next descarta maxAge: 0 (falsy) y sin esto queda una cookie
+            // con valor vacío que "revive".
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+              expires: new Date(0),
+              maxAge: 0,
+            })
           },
         },
       }

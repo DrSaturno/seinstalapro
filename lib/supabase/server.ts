@@ -27,7 +27,16 @@ export function createClient() {
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            // expires en el pasado para que la cookie se borre de verdad.
+            // Next descarta maxAge: 0 (falsy) y sin esto queda una cookie
+            // con valor vacío que nunca expira.
+            cookieStore.set({
+              name,
+              value: '',
+              ...options,
+              expires: new Date(0),
+              maxAge: 0,
+            })
           } catch (error) {
             // Igual que set()
           }

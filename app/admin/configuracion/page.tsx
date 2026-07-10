@@ -6,7 +6,6 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
-import { createClient } from '@/lib/supabase/client'
 import {
   getAdminCategories,
   createCategory,
@@ -124,14 +123,9 @@ export default function AdminConfiguracionPage() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      const supabase = createClient()
-      await supabase.auth.signOut({ scope: 'global' })
-    } catch (err) {
-      console.error('Error en signOut:', err)
-    }
-    window.location.replace('/login')
+  const handleLogout = () => {
+    // Logout server-side: la ruta borra las cookies de auth en la respuesta.
+    window.location.replace('/auth/signout')
   }
 
   return (

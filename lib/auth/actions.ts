@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import {
   loginSchema,
   forgotPasswordSchema,
@@ -83,9 +84,29 @@ export async function login(data: LoginInput): Promise<ActionResult> {
 // y los instaladores solo entran aceptando una invitación (lib/actions/team.ts).
 
 // --- LOGOUT ---
+// Nota: los botones de "Cerrar sesión" navegan a /auth/signout (route handler),
+// que es el camino canónico. Esta action queda con las mismas garantías.
 export async function logout(): Promise<void> {
   const supabase = createClient()
-  await supabase.auth.signOut()
+  try {
+    await supabase.auth.signOut({ scope: 'local' })
+  } catch {
+    // El logout no debe depender de esta llamada (token expirado/rotado)
+  }
+  // Garantía: expirar toda cookie de auth de Supabase aunque signOut falle.
+  // expires en el pasado — Next descarta maxAge: 0 por ser falsy.
+  const cookieStore = cookies()
+  for (const cookie of cookieStore.getAll()) {
+    if (cookie.name.startsWith('sb-')) {
+      cookieStore.set({
+        name: cookie.name,
+        value: '',
+        path: '/',
+        expires: new Date(0),
+        maxAge: 0,
+      })
+    }
+  }
   redirect('/login')
 }
 

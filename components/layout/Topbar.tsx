@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, LogOut, User, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
-import { createClient } from '@/lib/supabase/client'
 import { Avatar } from '@/components/ui/Avatar'
 import { NotificationDropdown } from '@/components/layout/NotificationDropdown'
 import { ROLE_LABELS } from '@/lib/navigation'
@@ -33,15 +32,12 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsDropdownOpen(false)
-    try {
-      const supabase = createClient()
-      await supabase.auth.signOut({ scope: 'global' })
-    } catch (err) {
-      console.error('Error en signOut:', err)
-    }
-    window.location.replace('/login')
+    // Logout server-side: la ruta borra las cookies de auth en la respuesta.
+    // Navegación plena a propósito — no depende del cliente de Supabase
+    // (que puede colgarse esperando el auth lock) ni del estado de React.
+    window.location.replace('/auth/signout')
   }
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuario'

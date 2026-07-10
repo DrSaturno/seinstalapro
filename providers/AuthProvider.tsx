@@ -123,31 +123,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth()
 
     // Escuchar cambios de auth (incluye INITIAL_SESSION en supabase-js v2.39+)
+    // IMPORTANTE: el callback NO debe ser async ni llamar a otras funciones
+    // de Supabase directamente — el callback corre reteniendo el auth lock
+    // y una query adentro puede deadlockear todas las operaciones de auth
+    // (signOut incluido). Por eso el cuerpo se difiere con setTimeout.
+    // Ref: docs de supabase.auth.onAuthStateChange.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      if (!mountedRef.current) return
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      setTimeout(async () => {
+        if (!mountedRef.current) return
 
-      try {
-        setSession(newSession)
-        setUser(newSession?.user ?? null)
+        try {
+          setSession(newSession)
+          setUser(newSession?.user ?? null)
 
-        if (newSession?.user && !profileLoadedRef.current) {
-          profileLoadedRef.current = true
-          await fetchProfile(newSession.user.id)
-        } else if (newSession?.user && event === 'TOKEN_REFRESHED') {
-          // En refresh de token, actualizar perfil
-          await fetchProfile(newSession.user.id)
-        } else if (!newSession?.user) {
-          setProfile(null)
+          if (newSession?.user && !profileLoadedRef.current) {
+            profileLoadedRef.current = true
+            await fetchProfile(newSession.user.id)
+          } else if (newSession?.user && event === 'TOKEN_REFRESHED') {
+            // En refresh de token, actualizar perfil
+            await fetchProfile(newSession.user.id)
+          } else if (!newSession?.user) {
+            setProfile(null)
+          }
+        } catch (error) {
+          console.error('Error in auth state change:', error)
+        } finally {
+          if (mountedRef.current) {
+            setIsLoading(false)
+          }
         }
-      } catch (error) {
-        console.error('Error in auth state change:', error)
-      } finally {
-        if (mountedRef.current) {
-          setIsLoading(false)
-        }
-      }
+      }, 0)
     })
 
     return () => {
